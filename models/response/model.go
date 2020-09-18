@@ -2,11 +2,7 @@ package response
 
 import "github.com/gin-gonic/gin"
 
-type Response struct {
-	status  string      `json:"status"`
-	message string      `json:"message"`
-	data    interface{} `json:"data"`
-}
+type Response struct {}
 
 type ResInterface interface {
 	CustomResponse(c *gin.Context,
