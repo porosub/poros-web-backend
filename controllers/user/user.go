@@ -1,9 +1,10 @@
 package user
 
 import (
+	userModel "github.com/divisi-developer-poros/poros-web-backend/models/user"
+	"github.com/divisi-developer-poros/poros-web-backend/util/response"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	userModel "github.com/divisi-developer-poros/poros-web-backend/models/user"
 )
 
 func GetAll(c *gin.Context) {
@@ -11,15 +12,11 @@ func GetAll(c *gin.Context) {
 
 	err := userModel.GetAll(&users)
 
-
 	if err != nil {
-		c.AbortWithStatus(http.StatusNotFound)
+		response.Res(c, "Content-Type", "application/json", "error", "failed when fetching users", http.StatusBadRequest, err)
 	} else {
-		c.JSON(http.StatusOK, gin.H{
-			"status": "success",
-			"message" : "null",
-			"data": users,
- 		})
+		response.Res(c, "Content-Type", "application/json", "success", "null", http.StatusOK, users)
+		return
 	}
 
 }
