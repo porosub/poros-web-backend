@@ -7,11 +7,13 @@ import (
 	"github.com/divisi-developer-poros/poros-web-backend/routes"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
+
+	"github.com/divisi-developer-poros/poros-web-backend/migrations"
 )
 
-var err error
-
 func main() {
+	var err error
+
 	config.DB, err = gorm.Open("mysql", config.DbURL(config.BuildDBConfig()))
 
 	if err != nil {
@@ -19,6 +21,8 @@ func main() {
 	}
 
 	defer config.DB.Close()
+
+	migrations.Start(config.DB)
 
 	routes.Start()
 }
