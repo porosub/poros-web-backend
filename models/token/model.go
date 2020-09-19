@@ -12,5 +12,5 @@ type JWTToken struct {
 
 type JWTTokenInterface interface {
 	GenerateToken(userName string, userType int) (string, error)
-	TokenValidation(token string) (jwt.Claims, error)
+	TokenValidation(token string) (*jwt.Token, error)
 }

@@ -32,13 +32,13 @@ type UserTesting struct {
 func (cobs *Cobs) Login(c *gin.Context) {
 	var userCobs UserTesting
 	if err := c.BindJSON(&userCobs); err != nil {
-		cobs.Res.CustomResponse(c, "Content-Type", "application/json", "failed", "error when parsing data", http.StatusBadRequest, nil)
+		cobs.Res.CustomResponse(c, "Content-Type", "application/json", "error", "failed when parsing data", http.StatusBadRequest, nil)
 		return
 	}
 
 	value, err := cobs.Token.GenerateToken(userCobs.Username, userCobs.Usertype)
 	if err != nil {
-		cobs.Res.CustomResponse(c, "Content-Type", "application/json", "failed", "error when generating token", http.StatusInternalServerError, nil)
+		cobs.Res.CustomResponse(c, "Content-Type", "application/json", "error", "failed when generating token", http.StatusInternalServerError, nil)
 		return
 	}
 	cobs.Res.CustomResponse(c, "Authorization", "Bearer "+value, "success", "", http.StatusOK, value)

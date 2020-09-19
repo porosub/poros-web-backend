@@ -20,7 +20,7 @@ func (tm *TokenMiddleware) AuthorizeToken(c *gin.Context) {
 		tm.ResponseEntity.CustomResponse(c,
 			"Content-Type",
 			"application/json",
-			"failed",
+			"error",
 			"missing authorization header",
 			http.StatusUnauthorized,
 			nil)
@@ -35,7 +35,7 @@ func (tm *TokenMiddleware) AuthorizeToken(c *gin.Context) {
 			c,
 			"Content-Type",
 			"application/json",
-			"failed",
+			"error",
 			"failed when validating token",
 			http.StatusUnauthorized,
 			nil)

@@ -20,7 +20,7 @@ func Start() {
 		c.String(http.StatusOK, "Hello World!")
 	})
 
-
+	// Example Of JWT Middleware
 	r.GET("/guest", TestingHandlers.Guest)
 	r.POST("/login", TestingHandlers.Login)
 	r.GET("/home", TokenMiddleware.AuthorizeToken, TestingHandlers.Home)
