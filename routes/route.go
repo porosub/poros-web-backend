@@ -25,5 +25,9 @@ func Start() {
 
 	r.POST("/user", userController.Create)
 
+	r.PUT("/user/:id", userController.Update)
+
+	r.DELETE("/user/:id", userController.Delete)
+
 	r.Run()
 }
