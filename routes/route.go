@@ -21,6 +21,9 @@ func Start() {
 	})
 
 	r.GET("/users", userController.GetAll)
+	r.GET("/user/:id", userController.Get)
+
+	r.POST("/user", userController.Create)
 
 	r.Run()
 }
