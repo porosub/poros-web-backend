@@ -2,8 +2,8 @@ package middleware
 
 import (
 	"fmt"
-	"github.com/divisi-developer-poros/poros-web-backend/models/response"
 	jt "github.com/divisi-developer-poros/poros-web-backend/models/token"
+	"github.com/divisi-developer-poros/poros-web-backend/utils/response"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strings"
@@ -11,7 +11,7 @@ import (
 
 type TokenMiddleware struct {
 	ResponseEntity response.Response
-	JWT jt.JWTToken
+	JWT            jt.JWTToken
 }
 
 func (tm *TokenMiddleware) AuthorizeToken(c *gin.Context) {
