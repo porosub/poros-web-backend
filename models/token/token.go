@@ -23,7 +23,6 @@ func (jt *JWTToken) GenerateToken(userName string, userType int) (string, error)
 
 func (jt *JWTToken) TokenValidation(encodedToken string) (*jwt.Token, error) {
 	return jwt.Parse(encodedToken, func(token *jwt.Token) (interface{}, error) {
-		//return signingKey, nil
 		if _, valid := token.Method.(*jwt.SigningMethodHMAC); !valid {
 			return nil, errors.New("invalid token")
 		} else {
