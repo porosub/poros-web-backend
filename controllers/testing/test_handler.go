@@ -1,15 +1,15 @@
 package testing
 
 import (
-	"github.com/divisi-developer-poros/poros-web-backend/models/response"
 	"github.com/divisi-developer-poros/poros-web-backend/models/token"
+	"github.com/divisi-developer-poros/poros-web-backend/utils/response"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
 type Cobs struct {
-	Res   response.Response
-	Token token.JWTToken
+	Res     response.Response
+	Token   token.JWTToken
 }
 
 type TestInterface interface {
@@ -31,8 +31,8 @@ type UserTesting struct {
 
 func (cobs *Cobs) Login(c *gin.Context) {
 	var userCobs UserTesting
-	if err := c.BindJSON(&userCobs); err != nil {
-		cobs.Res.CustomResponse(c, "Content-Type", "application/json", "error", "failed when parsing data", http.StatusBadRequest, nil)
+	if err := c.ShouldBindJSON(c); err != nil {
+		cobs.Res.CustomResponse(c, "Content-Type", "application/json", "error", "failed when binding data", http.StatusBadRequest, nil)
 		return
 	}
 
