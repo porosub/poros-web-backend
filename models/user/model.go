@@ -1,16 +1,18 @@
 package user
 
 import (
+	"github.com/divisi-developer-poros/poros-web-backend/models/user_type"
 	_ "github.com/go-playground/validator/v10"
 )
 
 type User struct {
-	Id           uint		`gorm:"primaryKey" json:"id"`
-	Image        string		`gorm:"not null" json:"image" validate:"required"`
-	Username     string		`gorm:"not null" json:"username" validate:"required"`
-	Password     string		`gorm:"not null" json:"password" validate:"required,min=8"`
-	Full_name    string		`gorm:"not null" json:"full_name" validate:"required"`
-	User_type_id uint		`gorm:"not null" gorm:"index" json:"user_type_id" validate:"required"`
+	Id           	uint					`gorm:"primaryKey" json:"id" binding:"required"`
+	Image        	string					`gorm:"not null" json:"image" binding:"required"`
+	Username     	string					`gorm:"not null" json:"username" binding:"required"`
+	Password     	string					`gorm:"not null" json:"password" binding:"required" validate:"min=8"`
+	Full_name    	string					`gorm:"not null" json:"full_name" binding:"required"`
+	User_Type		user_type.User_Type		`gorm:"association_foreignkey:id" binding:"required"`
+	User_Type_Id	int
 }
 
 func (b *User) TableName() string {

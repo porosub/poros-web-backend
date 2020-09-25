@@ -14,7 +14,7 @@ func GetAll(c *gin.Context) {
 	var users []userModel.User
 
 	if err := userModel.GetAll(&users); err != nil {
-		response.Res(c, "Content-Type", "application/json", "error", "failed when fetching users", http.StatusBadRequest, err)
+		response.Res(c, "Content-Type", "application/json", "error", err.Error(), http.StatusBadRequest, nil)
 		return
 	} else {
 		response.Res(c, "Content-Type", "application/json", "success", "null", http.StatusOK, users)
@@ -31,9 +31,8 @@ func Get(c *gin.Context) {
 		return
 	} else {
 		var user userModel.User
-
 		if err := userModel.Get(&user, numId); err != nil {
-			response.Res(c, "Content-Type", "application/json", "error", "user not found", http.StatusNotFound, err)
+			response.Res(c, "Content-Type", "application/json", "error", "user not found", http.StatusNotFound, nil)
 			return
 		} else {
 			response.Res(c, "Content-Type", "application/json", "success", "null", http.StatusOK, user)
@@ -44,16 +43,17 @@ func Get(c *gin.Context) {
 
 func Create(c *gin.Context) {
 	var user userModel.User
+
 	c.BindJSON(&user)
 
 	validate := validator.New()
 
 	if errValidate:= validate.Struct(user); errValidate != nil {
-		response.Res(c, "Content-Type", "application/json", "error", "invalid user input", http.StatusBadRequest, errValidate.Error())
+		response.Res(c, "Content-Type", "application/json", "error", "invalid user input", http.StatusBadRequest, nil)
 		return
 	} else {
 		if err := userModel.Create(&user); err != nil {
-			response.Res(c, "Content-Type", "application/json", "error", "error when creating user", http.StatusBadRequest, err)
+			response.Res(c, "Content-Type", "application/json", "error", err.Error(), http.StatusBadRequest, nil)
 			return
 		} else {
 			response.Res(c, "Content-Type", "application/json", "success", "user created", http.StatusOK, user)
@@ -69,7 +69,7 @@ func Update(c *gin.Context) {
 	validate := validator.New()
 
 	if errValidate:= validate.Struct(user); errValidate != nil {
-		response.Res(c, "Content-Type", "application/json", "error", "invalid user input", http.StatusBadRequest, errValidate.Error())
+		response.Res(c, "Content-Type", "application/json", "error", "invalid user input", http.StatusBadRequest, nil)
 		return
 	} else {
 		if numId, error := strconv.Atoi(id); error != nil {
@@ -82,7 +82,7 @@ func Update(c *gin.Context) {
 				return
 			}
 			if err := userModel.Update(&user, numId); err != nil {
-				response.Res(c, "Content-Type", "application/json", "error", "error when updating user", http.StatusBadRequest, err)
+				response.Res(c, "Content-Type", "application/json", "error", err.Error(), http.StatusBadRequest, nil)
 				return
 			} else {
 				response.Res(c, "Content-Type", "application/json", "success", "user updated", http.StatusOK, user)
@@ -106,7 +106,7 @@ func Delete(c *gin.Context) {
 			return
 		} else {
 			if err := userModel.Delete(&user, numId); err != nil {
-				response.Res(c, "Content-Type", "application/json", "error", "ID not valid", http.StatusBadRequest, err)
+				response.Res(c, "Content-Type", "application/json", "error", "ID not valid", http.StatusBadRequest, nil)
 				return
 			} else {
 				response.Res(c, "Content-Type", "application/json", "success", "user deleted", http.StatusOK, nil)

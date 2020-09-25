@@ -43,7 +43,7 @@ func Update(updatedUser *User, id int) (err error) {
 	existedUser.Username = updatedUser.Username
 	existedUser.Password = hashedPassword
 	existedUser.Full_name = updatedUser.Full_name
-	existedUser.User_type_id = updatedUser.User_type_id
+	existedUser.User_Type = updatedUser.User_Type
 
 	if err := config.DB.Save(existedUser).Error; err != nil {
 		return err

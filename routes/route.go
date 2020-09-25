@@ -21,13 +21,13 @@ func Start() {
 	})
 
 	r.GET("/users", userController.GetAll)
-	r.GET("/user/:id", userController.Get)
+	r.GET("/users/:id", userController.Get)
 
-	r.POST("/user", userController.Create)
+	r.POST("/users", userController.Create)
 
-	r.PUT("/user/:id", userController.Update)
+	r.PUT("/users/:id", userController.Update)
 
-	r.DELETE("/user/:id", userController.Delete)
+	r.DELETE("/users/:id", userController.Delete)
 
 	r.Run()
 }
