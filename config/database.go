@@ -5,8 +5,9 @@ import (
 	"log"
 	"os"
 
-	"github.com/jinzhu/gorm"
 	"github.com/joho/godotenv"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
 // DB ... Referensi database yang digunakan
@@ -48,4 +49,12 @@ func DbURL(dbConfig *DBConfig) string {
 		dbConfig.Port,
 		dbConfig.DBName,
 	)
+}
+
+func MysqlConn() (*gorm.DB, error) {
+	db, err := gorm.Open(mysql.Open(DbURL(BuildDBConfig())), &gorm.Config{})
+	if err != nil {
+		log.Fatal(err)
+	}
+	return db, err
 }
