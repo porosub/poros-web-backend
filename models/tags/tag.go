@@ -28,6 +28,10 @@ func (t *Tag) FetchTags() (*[]Tag, error) {
 }
 
 func (t *Tag) FetchTagByID(id int) (*Tag, error) {
+	if err != nil {
+		return nil, err
+	}
+
 	var tag Tag
 	if err := connection.Where("id = ?", id).Find(&tag).Error; err != nil {
 		return nil, err
@@ -40,6 +44,10 @@ func (t *Tag) FetchTagByID(id int) (*Tag, error) {
 }
 
 func (t *Tag) CreateTag(newTag *Tag) error {
+	if err != nil {
+		return err
+	}
+
 	if err := connection.Create(&newTag).Error; err != nil {
 		return err
 	}
@@ -47,6 +55,10 @@ func (t *Tag) CreateTag(newTag *Tag) error {
 }
 
 func (t *Tag) UpdateTagByID(updatedTag *Tag) error {
+	if err != nil {
+		return err
+	}
+
 	// if data exists
 	if _, err := t.FetchTagByID(updatedTag.ID); err != nil {
 		return err
@@ -59,6 +71,10 @@ func (t *Tag) UpdateTagByID(updatedTag *Tag) error {
 }
 
 func (t *Tag) DeleteTagByID(id int) error {
+	if err != nil {
+		return err
+	}
+
 	if err := connection.Delete(&Tag{}, id).Error; err != nil {
 		return err
 	}
