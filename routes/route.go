@@ -13,6 +13,7 @@ import (
 var (
 	TestingHandlers test.Cobs
 	TokenMiddleware middleware.TokenMiddleware
+	UserHandlers	userController.Response
 )
 
 type Test struct {
@@ -29,20 +30,15 @@ func Start() {
 		c.String(http.StatusOK, "Hello World!")
 	})
 
-
 	// Example Of JWT Middleware
 	r.GET("/guest", TestingHandlers.Guest)
 	r.POST("/login", TestingHandlers.Login)
 	r.GET("/home", TokenMiddleware.AuthorizeToken, TestingHandlers.Home)
-
-	r.GET("/users", userController.GetAll)
-	r.GET("/users/:id", userController.Get)
-
-	r.POST("/users", userController.Create)
-
-	r.PUT("/users/:id", userController.Update)
-
-	r.DELETE("/users/:id", userController.Delete)
+	r.GET("/users", UserHandlers.GetAll)
+	r.GET("/users/:id", UserHandlers.Get)
+	r.POST("/users", UserHandlers.Create)
+	r.PUT("/users/:id", UserHandlers.Update)
+	r.DELETE("/users/:id", UserHandlers.Delete)
 
 	r.Run()
 }

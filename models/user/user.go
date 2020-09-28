@@ -6,7 +6,7 @@ import (
 
 	_ "github.com/jinzhu/gorm"
 
-	"github.com/divisi-developer-poros/poros-web-backend/util/Hash"
+	"github.com/divisi-developer-poros/poros-web-backend/utils/Hash"
 )
 
 func GetAll(users *[]User) (err error) {

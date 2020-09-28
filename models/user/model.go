@@ -11,8 +11,7 @@ type User struct {
 	Username     	string					`gorm:"not null" json:"username" binding:"required"`
 	Password     	string					`gorm:"not null" json:"password" binding:"required" validate:"min=8"`
 	Full_name    	string					`gorm:"not null" json:"full_name" binding:"required"`
-	User_Type		user_type.User_Type		`gorm:"association_foreignkey:id" binding:"required"`
-	User_Type_Id	int
+	User_Type		user_type.User_Type
 }
 
 func (b *User) TableName() string {
