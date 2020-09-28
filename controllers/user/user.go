@@ -3,7 +3,6 @@ package user
 import (
 	userModel "github.com/divisi-developer-poros/poros-web-backend/models/user"
 	r "github.com/divisi-developer-poros/poros-web-backend/utils/response"
-	_ "github.com/divisi-developer-poros/poros-web-backend/controllers"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 
