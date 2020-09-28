@@ -26,7 +26,7 @@ func (ht *HandlerTag) GetTags(c *gin.Context) {
 	if err != nil {
 		ht.Res.CustomResponse(c, "Content-Type",
 			"application/json", "error",
-			"failed to get data", http.StatusOK, nil)
+			err.Error(), http.StatusOK, nil)
 		return
 	}
 	ht.Res.CustomResponse(c, "Content-Type",
@@ -40,7 +40,7 @@ func (ht *HandlerTag) GetTagByID(c *gin.Context) {
 	if err != nil {
 		ht.Res.CustomResponse(c, "Content-Type",
 			"application/json", "error",
-			"Bad Request Params", http.StatusBadRequest, nil)
+			err.Error(), http.StatusBadRequest, nil)
 		return
 	}
 
@@ -48,7 +48,7 @@ func (ht *HandlerTag) GetTagByID(c *gin.Context) {
 	if err != nil {
 		ht.Res.CustomResponse(c, "Content-Type",
 			"application/json", "error",
-			"failed to get data", http.StatusNotFound, nil)
+			err.Error(), http.StatusNotFound, nil)
 		return
 	}
 
@@ -63,42 +63,53 @@ func (ht *HandlerTag) CreateTag(c *gin.Context) {
 	if err := c.ShouldBindJSON(&newTag); err != nil {
 		ht.Res.CustomResponse(c, "Content-Type",
 			"application/json", "error",
-			"bad request JSON", http.StatusBadRequest, nil)
+			err.Error(), http.StatusBadRequest, nil)
 		return
 	}
 
-	if err := ht.TagModel.CreateTag(&newTag); err != nil {
+	result, err := ht.TagModel.CreateTag(&newTag);
+	if err != nil {
 		ht.Res.CustomResponse(c, "Content-Type",
 			"application/json", "error",
-			"failed to create new tag", http.StatusInternalServerError, nil)
+			err.Error(), http.StatusInternalServerError, nil)
 		return
 	}
 
 	ht.Res.CustomResponse(c, "Content-Type",
 		"application/json", "success",
-		"created successfully", http.StatusOK, nil)
+		"created successfully", http.StatusOK, result)
 	return
 }
 
 func (ht *HandlerTag) UpdateTagByID(c *gin.Context) {
+	id, err := strconv.Atoi(c.Params.ByName("id"))
+	if err != nil {
+		ht.Res.CustomResponse(c, "Content-Type",
+			"application/json", "error",
+			err.Error(), http.StatusBadRequest, nil)
+		return
+	}
+
 	var updatedTag tags.Tag
 	if err := c.ShouldBindJSON(&updatedTag); err != nil {
 		ht.Res.CustomResponse(c, "Content-Type",
 			"application/json", "error",
-			"bad request JSON", http.StatusBadRequest, nil)
+			err.Error(), http.StatusBadRequest, nil)
 		return
 	}
+	updatedTag.ID = id
 
-	if err := ht.TagModel.UpdateTagByID(&updatedTag); err != nil {
+	result, err := ht.TagModel.UpdateTagByID(&updatedTag)
+	if err != nil {
 		ht.Res.CustomResponse(c, "Content-Type",
 			"application/json", "error",
-			"failed to update data", http.StatusInternalServerError, nil)
+			err.Error(), http.StatusInternalServerError, nil)
 		return
 	}
 
 	ht.Res.CustomResponse(c, "Content-Type",
 		"application/json", "success",
-		"updated successfully", http.StatusOK, nil)
+		"updated successfully", http.StatusOK, result)
 	return
 }
 
@@ -114,7 +125,7 @@ func (ht *HandlerTag) DeleteTag(c *gin.Context) {
 	if err := ht.TagModel.DeleteTagByID(id); err != nil {
 		ht.Res.CustomResponse(c, "Content-Type",
 			"application/json", "error",
-			"failed to delete data", http.StatusBadRequest, nil)
+			err.Error(), http.StatusNotFound, nil)
 		return
 	}
 

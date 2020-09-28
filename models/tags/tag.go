@@ -13,13 +13,12 @@ type TagInterface interface {
 	DeleteTagByID(id int) error
 }
 
-var connection, err = config.MysqlConn()
+var (
+	mysql      config.DBMySQL
+	connection = mysql.MysqlConn()
+)
 
 func (t *Tag) FetchTags() (*[]Tag, error) {
-	if err != nil {
-		return nil, err
-	}
-
 	var tags []Tag
 	if err := connection.Find(&tags).Error; err != nil {
 		return nil, err
@@ -28,10 +27,6 @@ func (t *Tag) FetchTags() (*[]Tag, error) {
 }
 
 func (t *Tag) FetchTagByID(id int) (*Tag, error) {
-	if err != nil {
-		return nil, err
-	}
-
 	var tag Tag
 	if err := connection.Where("id = ?", id).Find(&tag).Error; err != nil {
 		return nil, err
@@ -43,40 +38,36 @@ func (t *Tag) FetchTagByID(id int) (*Tag, error) {
 	return &tag, nil
 }
 
-func (t *Tag) CreateTag(newTag *Tag) error {
-	if err != nil {
-		return err
+func (t *Tag) CreateTag(newTag *Tag) (*Tag, error) {
+	result := connection.Create(&newTag)
+	if result.Error != nil {
+		return nil, result.Error
 	}
-
-	if err := connection.Create(&newTag).Error; err != nil {
-		return err
-	}
-	return nil
+	return newTag, nil
 }
 
-func (t *Tag) UpdateTagByID(updatedTag *Tag) error {
-	if err != nil {
-		return err
-	}
-
+func (t *Tag) UpdateTagByID(updatedTag *Tag) (*Tag, error) {
 	// if data exists
 	if _, err := t.FetchTagByID(updatedTag.ID); err != nil {
-		return err
+		return nil, err
 	}
 
-	if err := connection.Save(&updatedTag).Error; err != nil {
-		return err
+	result := connection.Save(&updatedTag)
+	if result.Error != nil {
+		return nil, result.Error
 	}
-	return nil
+	return updatedTag, nil
 }
 
 func (t *Tag) DeleteTagByID(id int) error {
-	if err != nil {
+	// if data exists
+	if _, err := t.FetchTagByID(id); err != nil {
 		return err
 	}
 
-	if err := connection.Delete(&Tag{}, id).Error; err != nil {
-		return err
+	result := connection.Delete(&Tag{}, id)
+	if result.Error != nil {
+		return result.Error
 	}
 	return nil
 }

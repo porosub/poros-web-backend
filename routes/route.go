@@ -31,7 +31,7 @@ func Start() {
 	r.GET("/tags", TokenMiddleware.AuthorizeToken, TagHandlers.GetTags)
 	r.GET("/tags/:id", TokenMiddleware.AuthorizeToken, TagHandlers.GetTagByID)
 	r.POST("/tags", TokenMiddleware.AuthorizeToken, TagHandlers.CreateTag)
-	r.PUT("/tags", TokenMiddleware.AuthorizeToken, TagHandlers.UpdateTagByID)
+	r.PUT("/tags/:id", TokenMiddleware.AuthorizeToken, TagHandlers.UpdateTagByID)
 	r.DELETE("/tags/:id", TokenMiddleware.AuthorizeToken, TagHandlers.DeleteTag)
 
 	r.Run()

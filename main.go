@@ -4,14 +4,12 @@ import (
 	"github.com/divisi-developer-poros/poros-web-backend/config"
 	"github.com/divisi-developer-poros/poros-web-backend/migrations"
 	"github.com/divisi-developer-poros/poros-web-backend/routes"
-	"log"
 )
 
+var mysql config.DBMySQL
+
 func main() {
-	db, err := config.MysqlConn()
-	if err != nil {
-		log.Fatal(err)
-	}
+	db:= mysql.MysqlConn()
 	migrations.Start(db)
 	routes.Start()
 }
