@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"github.com/divisi-developer-poros/poros-web-backend/controllers/tag"
 	"github.com/divisi-developer-poros/poros-web-backend/middleware"
 	"net/http"
 
@@ -10,6 +11,7 @@ import (
 
 var (
 	TestingHandlers test.Cobs
+	TagHandlers     tag.HandlerTag
 	TokenMiddleware middleware.TokenMiddleware
 )
 
@@ -24,6 +26,13 @@ func Start() {
 	r.GET("/guest", TestingHandlers.Guest)
 	r.POST("/login", TestingHandlers.Login)
 	r.GET("/home", TokenMiddleware.AuthorizeToken, TestingHandlers.Home)
+
+	// tag routes
+	r.GET("/tags", TokenMiddleware.AuthorizeToken, TagHandlers.GetTags)
+	r.GET("/tags/:id", TokenMiddleware.AuthorizeToken, TagHandlers.GetTagByID)
+	r.POST("/tags", TokenMiddleware.AuthorizeToken, TagHandlers.CreateTag)
+	r.PUT("/tags/:id", TokenMiddleware.AuthorizeToken, TagHandlers.UpdateTagByID)
+	r.DELETE("/tags/:id", TokenMiddleware.AuthorizeToken, TagHandlers.DeleteTag)
 
 	r.Run()
 }
