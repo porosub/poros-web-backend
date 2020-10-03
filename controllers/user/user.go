@@ -4,8 +4,6 @@ import (
 	userModel "github.com/divisi-developer-poros/poros-web-backend/models/user"
 	r "github.com/divisi-developer-poros/poros-web-backend/utils/response"
 	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
-
 	"net/http"
 	"strconv"
 )
@@ -45,12 +43,8 @@ func (response *Response) Get(c *gin.Context) {
 func (response *Response) Create(c *gin.Context) {
 	var user userModel.User
 
-	c.BindJSON(&user)
-
-	validate := validator.New()
-
-	if errValidate:= validate.Struct(user); errValidate != nil {
-		response.Res.CustomResponse(c, "Content-Type", "application/json", "error", "invalid user input", http.StatusBadRequest, nil)
+	if err := c.ShouldBindJSON(&user); err != nil {
+		response.Res.CustomResponse(c, "Content-Type", "application/json", "error", err.Error(), http.StatusBadRequest, nil)
 	} else {
 		if err := userModel.Create(&user); err != nil {
 			response.Res.CustomResponse(c, "Content-Type", "application/json", "error", err.Error(), http.StatusBadRequest, nil)
@@ -64,14 +58,12 @@ func (response *Response) Create(c *gin.Context) {
 func (response *Response) Update(c *gin.Context) {
 	id := c.Params.ByName("id")
 	var user userModel.User
-	c.BindJSON(&user)
-	validate := validator.New()
 
-	if errValidate:= validate.Struct(user); errValidate != nil {
-		response.Res.CustomResponse(c, "Content-Type", "application/json", "error", "invalid user input", http.StatusBadRequest, nil)
+	if err := c.ShouldBindJSON(&user); err != nil {
+		response.Res.CustomResponse(c, "Content-Type", "application/json", "error", err.Error(), http.StatusBadRequest, nil)
 	} else {
 		if numId, error := strconv.Atoi(id); error != nil {
-			response.Res.CustomResponse(c, "Content-Type", "application/json", "error", "ID not valid", http.StatusBadRequest, nil)
+				response.Res.CustomResponse(c, "Content-Type", "application/json", "error", "ID not valid", http.StatusBadRequest, nil)
 		} else {
 			var existedUser userModel.User
 			if errUserExist := userModel.Get(&existedUser, numId); errUserExist != nil {
