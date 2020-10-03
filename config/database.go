@@ -5,12 +5,10 @@ import (
 	"log"
 	"os"
 
-	"github.com/jinzhu/gorm"
 	"github.com/joho/godotenv"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
-
-// DB ... Referensi database yang digunakan
-var DB *gorm.DB
 
 // DBConfig ... Deklarasi atribut konfigurasi database
 type DBConfig struct {
@@ -21,8 +19,19 @@ type DBConfig struct {
 	Password string
 }
 
+type DBMySQL struct {
+	// DB ... Referensi database yang digunakan
+	DB gorm.DB
+}
+
+type DBMySQLInterface interface {
+	BuildDBConfig() *DBConfig
+	DbURL(dbConfig *DBConfig) string
+	MysqlConn() (*gorm.DB, error)
+}
+
 // BuildDBConfig ... Inisialisasi konfigurasi pada database
-func BuildDBConfig() *DBConfig {
+func (dbsql *DBMySQL) BuildDBConfig() *DBConfig {
 	// load .env file
 	err := godotenv.Load(".env")
 
@@ -40,12 +49,20 @@ func BuildDBConfig() *DBConfig {
 }
 
 // DbURL ... Mengambil url yang digunakan untuk driver
-func DbURL(dbConfig *DBConfig) string {
+func (dbsql *DBMySQL) DbURL(dbConfig *DBConfig) string {
 	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local",
 		dbConfig.User,
 		dbConfig.Password,
 		dbConfig.Host,
 		dbConfig.Port,
-		dbConfig.DBName,
-	)
+		dbConfig.DBName, )
+}
+
+
+func (dbsql *DBMySQL) MysqlConn() *gorm.DB {
+	result, err := gorm.Open(mysql.Open(dbsql.DbURL(dbsql.BuildDBConfig())), &gorm.Config{})
+	if err != nil {
+		return nil
+	}
+	return result
 }

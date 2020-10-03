@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"github.com/divisi-developer-poros/poros-web-backend/controllers/tag"
 	"github.com/divisi-developer-poros/poros-web-backend/middleware"
 	userController "github.com/divisi-developer-poros/poros-web-backend/controllers/user"
 	"net/http"
@@ -12,6 +13,7 @@ import (
 
 var (
 	TestingHandlers test.Cobs
+	TagHandlers     tag.HandlerTag
 	TokenMiddleware middleware.TokenMiddleware
 )
 
@@ -36,13 +38,17 @@ func Start() {
 	r.GET("/home", TokenMiddleware.AuthorizeToken, TestingHandlers.Home)
 
 	r.GET("/users", userController.GetAll)
-	r.GET("/user/:id", userController.Get)
+	r.GET("/users/:id", userController.Get)
+	r.POST("/users", userController.Create)
+	r.PUT("/users/:id", userController.Update)
+	r.DELETE("/users/:id", userController.Delete)
 
-	r.POST("/user", userController.Create)
-
-	r.PUT("/user/:id", userController.Update)
-
-	r.DELETE("/user/:id", userController.Delete)
+	// tag routes
+	r.GET("/tags", TokenMiddleware.AuthorizeToken, TagHandlers.GetTags)
+	r.GET("/tags/:id", TokenMiddleware.AuthorizeToken, TagHandlers.GetTagByID)
+	r.POST("/tags", TokenMiddleware.AuthorizeToken, TagHandlers.CreateTag)
+	r.PUT("/tags/:id", TokenMiddleware.AuthorizeToken, TagHandlers.UpdateTagByID)
+	r.DELETE("/tags/:id", TokenMiddleware.AuthorizeToken, TagHandlers.DeleteTag)
 
 	r.Run()
 }
