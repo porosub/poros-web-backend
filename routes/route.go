@@ -1,9 +1,11 @@
 package routes
 
 import (
+	"net/http"
+
 	"github.com/divisi-developer-poros/poros-web-backend/controllers/tag"
 	"github.com/divisi-developer-poros/poros-web-backend/middleware"
-	"net/http"
+	"github.com/divisi-developer-poros/poros-web-backend/utils/storage"
 
 	test "github.com/divisi-developer-poros/poros-web-backend/controllers/testing"
 	"github.com/gin-gonic/gin"
@@ -26,6 +28,14 @@ func Start() {
 	r.GET("/guest", TestingHandlers.Guest)
 	r.POST("/login", TestingHandlers.Login)
 	r.GET("/home", TokenMiddleware.AuthorizeToken, TestingHandlers.Home)
+
+	// Example of Upload File
+	r.POST("/upload-file", storage.SingleHandler)
+	// Example of Upload Files
+	r.POST("/upload-files", storage.MultipleHandler)
+
+	// Static files for assets
+	r.Static("/assets", "./assets")
 
 	// tag routes
 	r.GET("/tags", TokenMiddleware.AuthorizeToken, TagHandlers.GetTags)
