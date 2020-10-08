@@ -12,7 +12,7 @@ var (
 )
 
 func GetAll(users *[]User) (err error) {
-	if err := connection.Find(users).Error; err != nil {
+	if err := connection.Preload("User_Type").Find(users).Error; err != nil {
 		return err
 	}
 	return err
