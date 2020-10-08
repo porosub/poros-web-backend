@@ -48,7 +48,7 @@ func (usr *UserHandler) Create(c *gin.Context) {
 		usr.Res.CustomResponse(c, "Content-Type", "application/json", "error", err.Error(), http.StatusBadRequest, nil)
 	} else {
 		if image, err := c.FormFile("image"); err != nil {
-			usr.Res.CustomResponse(c, "Content-Type", "application/json", "error", "no file provided", http.StatusBadRequest, nil)
+			usr.Res.CustomResponse(c, "Content-Type", "application/json", "error", "no image provided", http.StatusBadRequest, nil)
 		} else {
 			imageUrl := "images/" + image.Filename
 			if err := c.SaveUploadedFile(image, imageUrl); err != nil {
@@ -69,6 +69,8 @@ func (usr *UserHandler) Create(c *gin.Context) {
 func (usr *UserHandler) Update(c *gin.Context) {
 	id := c.Params.ByName("id")
 	var user userModel.User
+
+
 
 	if err := c.ShouldBindJSON(&user); err != nil {
 		usr.Res.CustomResponse(c, "Content-Type", "application/json", "error", err.Error(), http.StatusBadRequest, nil)
