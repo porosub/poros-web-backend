@@ -1,8 +1,6 @@
 .env
 .idea/
 sqlite
-images
-.gitignore
 assets/posts/images/*
 assets/samples/*
 assets/users/images/*

@@ -19,7 +19,7 @@ func GetAll(users *[]User) (err error) {
 }
 
 func Get(user *User, id int) (err error) {
-	if err = connection.Where("id=?", id).First(user).Error; err != nil {
+	if err = connection.Where("id=?", id).Preload("User_Type").First(user).Error; err != nil {
 		return err
 	}
 	return nil
