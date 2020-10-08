@@ -8,94 +8,105 @@ import (
 	"strconv"
 )
 
-type Response struct {
+type UserHandler struct {
+	Model	userModel.User
 	Res     r.Response
 }
 
-func (response *Response) GetAll(c *gin.Context) {
+func (usr *UserHandler) GetAll(c *gin.Context) {
 	var users []userModel.User
 
 	if err := userModel.GetAll(&users); err != nil {
-		response.Res.CustomResponse(c, "Content-Type", "application/json", "error", err.Error(), http.StatusBadRequest, nil)
+		usr.Res.CustomResponse(c, "Content-Type", "application/json", "error", err.Error(), http.StatusBadRequest, nil)
 	} else {
-		response.Res.CustomResponse(c, "Content-Type", "application/json", "success", "null", http.StatusOK, users)
+		usr.Res.CustomResponse(c, "Content-Type", "application/json", "success", "null", http.StatusOK, users)
 		return
 	}
 
 }
 
-func (response *Response) Get(c *gin.Context) {
+func (usr *UserHandler) Get(c *gin.Context) {
 	id := c.Params.ByName("id")
 
 	if numId, error := strconv.Atoi(id); error != nil {
-		response.Res.CustomResponse(c, "Content-Type", "application/json", "error", "ID not valid", http.StatusBadRequest, nil)
+		usr.Res.CustomResponse(c, "Content-Type", "application/json", "error", "ID not valid", http.StatusBadRequest, nil)
 	} else {
 		var user userModel.User
 		if err := userModel.Get(&user, numId); err != nil {
-			response.Res.CustomResponse(c, "Content-Type", "application/json", "error", "user not found", http.StatusNotFound, nil)
+			usr.Res.CustomResponse(c, "Content-Type", "application/json", "error", "user not found", http.StatusNotFound, nil)
 		} else {
-			response.Res.CustomResponse(c, "Content-Type", "application/json", "success", "null", http.StatusOK, user)
+			usr.Res.CustomResponse(c, "Content-Type", "application/json", "success", "null", http.StatusOK, user)
 			return
 		}
 	}
 }
 
-func (response *Response) Create(c *gin.Context) {
+func (usr *UserHandler) Create(c *gin.Context) {
 	var user userModel.User
 
 	if err := c.ShouldBindJSON(&user); err != nil {
-		response.Res.CustomResponse(c, "Content-Type", "application/json", "error", err.Error(), http.StatusBadRequest, nil)
+		usr.Res.CustomResponse(c, "Content-Type", "application/json", "error", err.Error(), http.StatusBadRequest, nil)
 	} else {
-		if err := userModel.Create(&user); err != nil {
-			response.Res.CustomResponse(c, "Content-Type", "application/json", "error", err.Error(), http.StatusBadRequest, nil)
+		if image, err := c.FormFile("image"); err != nil {
+			usr.Res.CustomResponse(c, "Content-Type", "application/json", "error", "no file provided", http.StatusBadRequest, nil)
 		} else {
-			response.Res.CustomResponse(c, "Content-Type", "application/json", "success", "user created", http.StatusOK, user)
-			return
+			imageUrl := "images/" + image.Filename
+			if err := c.SaveUploadedFile(image, imageUrl); err != nil {
+				usr.Res.CustomResponse(c, "Content-Type", "application/json", "error", "error when uploading images", http.StatusInternalServerError, nil)
+			} else {
+				user.Image = imageUrl
+				if err := userModel.Create(&user); err != nil {
+					usr.Res.CustomResponse(c, "Content-Type", "application/json", "error", err.Error(), http.StatusBadRequest, nil)
+				} else {
+					usr.Res.CustomResponse(c, "Content-Type", "application/json", "success", "user created", http.StatusOK, user)
+					return
+				}
+			}
 		}
 	}
 }
 
-func (response *Response) Update(c *gin.Context) {
+func (usr *UserHandler) Update(c *gin.Context) {
 	id := c.Params.ByName("id")
 	var user userModel.User
 
 	if err := c.ShouldBindJSON(&user); err != nil {
-		response.Res.CustomResponse(c, "Content-Type", "application/json", "error", err.Error(), http.StatusBadRequest, nil)
+		usr.Res.CustomResponse(c, "Content-Type", "application/json", "error", err.Error(), http.StatusBadRequest, nil)
 	} else {
 		if numId, error := strconv.Atoi(id); error != nil {
-				response.Res.CustomResponse(c, "Content-Type", "application/json", "error", "ID not valid", http.StatusBadRequest, nil)
+				usr.Res.CustomResponse(c, "Content-Type", "application/json", "error", "ID not valid", http.StatusBadRequest, nil)
 		} else {
 			var existedUser userModel.User
 			if errUserExist := userModel.Get(&existedUser, numId); errUserExist != nil {
-				response.Res.CustomResponse(c, "Content-Type", "application/json", "error", "user not found", http.StatusNotFound, nil)
+				usr.Res.CustomResponse(c, "Content-Type", "application/json", "error", "user not found", http.StatusNotFound, nil)
 				return
 			}
 			if err := userModel.Update(&user, numId); err != nil {
-				response.Res.CustomResponse(c, "Content-Type", "application/json", "error", err.Error(), http.StatusBadRequest, nil)
+				usr.Res.CustomResponse(c, "Content-Type", "application/json", "error", err.Error(), http.StatusBadRequest, nil)
 				return
 			} else {
-				response.Res.CustomResponse(c, "Content-Type", "application/json", "success", "user updated", http.StatusOK, user)
+				usr.Res.CustomResponse(c, "Content-Type", "application/json", "success", "user updated", http.StatusOK, user)
 				return
 			}
 		}
 	}
 }
 
-func (response *Response) Delete(c *gin.Context) {
+func (usr *UserHandler) Delete(c *gin.Context) {
 	id := c.Params.ByName("id")
 
 	if numId, error := strconv.Atoi(id); error != nil {
-		response.Res.CustomResponse(c, "Content-Type", "application/json", "error", "ID not valid", http.StatusBadRequest, nil)
+		usr.Res.CustomResponse(c, "Content-Type", "application/json", "error", "ID not valid", http.StatusBadRequest, nil)
 	} else {
 		var user userModel.User
 
 		if errUserExist := userModel.Get(&user, numId); errUserExist != nil {
-			response.Res.CustomResponse(c, "Content-Type", "application/json", "error", "user not found", http.StatusNotFound, nil)
+			usr.Res.CustomResponse(c, "Content-Type", "application/json", "error", "user not found", http.StatusNotFound, nil)
 		} else {
 			if err := userModel.Delete(&user, numId); err != nil {
-				response.Res.CustomResponse(c, "Content-Type", "application/json", "error", "ID not valid", http.StatusBadRequest, nil)
+				usr.Res.CustomResponse(c, "Content-Type", "application/json", "error", "ID not valid", http.StatusBadRequest, nil)
 			} else {
-				response.Res.CustomResponse(c, "Content-Type", "application/json", "success", "user deleted", http.StatusOK, nil)
+				usr.Res.CustomResponse(c, "Content-Type", "application/json", "success", "user deleted", http.StatusOK, nil)
 				return
 			}
 		}

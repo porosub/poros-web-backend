@@ -2,22 +2,24 @@ package user
 
 import (
 	"github.com/divisi-developer-poros/poros-web-backend/config"
-	_ "github.com/go-sql-driver/mysql"
-
-	_ "github.com/jinzhu/gorm"
 
 	"github.com/divisi-developer-poros/poros-web-backend/utils/Hash"
 )
 
+var (
+	mysql      config.DBMySQL
+	connection = mysql.MysqlConn()
+)
+
 func GetAll(users *[]User) (err error) {
-	if err := config.DB.Find(users).Error; err != nil {
+	if err := connection.Find(users).Error; err != nil {
 		return err
 	}
 	return err
 }
 
 func Get(user *User, id int) (err error) {
-	if err = config.DB.Where("id=?", id).First(user).Error; err != nil {
+	if err = connection.Where("id=?", id).First(user).Error; err != nil {
 		return err
 	}
 	return nil
@@ -27,7 +29,7 @@ func Create(user *User) (err error) {
 	hashedPassword := Hash.GetMD5Hash(user.Password)
 	user.Password = hashedPassword
 
-	if err := config.DB.Create(user).Error; err != nil {
+	if err := connection.Create(user).Error; err != nil {
 		return err
 	}
 	return nil
@@ -37,7 +39,7 @@ func Update(updatedUser *User, id int) (err error) {
 	hashedPassword := Hash.GetMD5Hash(updatedUser.Password)
 
 	var existedUser User
-	config.DB.Where("id=?", id).First(&existedUser)
+	connection.Where("id=?", id).First(&existedUser)
 
 	existedUser.Image = updatedUser.Image
 	existedUser.Username = updatedUser.Username
@@ -45,7 +47,7 @@ func Update(updatedUser *User, id int) (err error) {
 	existedUser.Full_name = updatedUser.Full_name
 	existedUser.User_Type = updatedUser.User_Type
 
-	if err := config.DB.Save(existedUser).Error; err != nil {
+	if err := connection.Save(existedUser).Error; err != nil {
 		return err
 	}
 	return nil
@@ -53,7 +55,7 @@ func Update(updatedUser *User, id int) (err error) {
 
 
 func Delete (user *User, id int) (err error) {
-	if err := config.DB.Unscoped().Where("id=?", id).Delete(&user).Error; err != nil {
+	if err := connection.Unscoped().Where("id=?", id).Delete(&user).Error; err != nil {
 		return err
 	}
 	return nil
