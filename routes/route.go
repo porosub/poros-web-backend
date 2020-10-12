@@ -39,11 +39,11 @@ func Start() {
 	r.GET("/home", TokenMiddleware.AuthorizeToken, TestingHandlers.Home)
 
 	// user routes
-	r.GET("/users", UserHandlers.GetAll)
-	r.GET("/users/:id", UserHandlers.Get)
-	r.POST("/users", UserHandlers.Create)
-	r.PUT("/users/:id", UserHandlers.Update)
-	r.DELETE("/users/:id", UserHandlers.Delete)
+	r.GET("/users", TokenMiddleware.AuthorizeToken, UserHandlers.GetAll)
+	r.GET("/users/:id", TokenMiddleware.AuthorizeToken, UserHandlers.Get)
+	r.POST("/users", TokenMiddleware.AuthorizeToken, UserHandlers.Create)
+	r.PUT("/users/:id", TokenMiddleware.AuthorizeToken, UserHandlers.Update)
+	r.DELETE("/users/:id", TokenMiddleware.AuthorizeToken, UserHandlers.Delete)
 
 	// user_type routes
 	r.GET("/usertype", UserTypeHandlers.GetAll)

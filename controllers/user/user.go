@@ -3,6 +3,7 @@ package user
 import (
 	"github.com/divisi-developer-poros/poros-web-backend/config"
 	userModel "github.com/divisi-developer-poros/poros-web-backend/models/user"
+	"github.com/divisi-developer-poros/poros-web-backend/utils/random"
 	r "github.com/divisi-developer-poros/poros-web-backend/utils/response"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -19,7 +20,7 @@ func (usr *UserHandler) GetAll(c *gin.Context) {
 	var users []userModel.User
 
 	if err := userModel.GetAll(&users); err != nil {
-		usr.Res.CustomResponse(c, "Content-Type", "application/json", "error", err.Error(), http.StatusBadRequest, nil)
+		usr.Res.CustomResponse(c, "Content-Type", "application/json", "error", err.Error(), http.StatusInternalServerError, nil)
 	} else {
 		usr.Res.CustomResponse(c, "Content-Type", "application/json", "success", "null", http.StatusOK, users)
 		return
@@ -35,7 +36,7 @@ func (usr *UserHandler) Get(c *gin.Context) {
 	} else {
 		var user userModel.User
 		if err := userModel.Get(&user, numId); err != nil {
-			usr.Res.CustomResponse(c, "Content-Type", "application/json", "error", "user not found", http.StatusNotFound, nil)
+			usr.Res.CustomResponse(c, "Content-Type", "application/json", "error", err.Error(), http.StatusInternalServerError, nil)
 		} else {
 			usr.Res.CustomResponse(c, "Content-Type", "application/json", "success", "null", http.StatusOK, user)
 			return
@@ -47,17 +48,17 @@ func (usr *UserHandler) Create(c *gin.Context) {
 	if isOk, user := _checkUserBinding(c); isOk != true {
 		usr.Res.CustomResponse(c, "Content-Type", "application/json", "error", "error when binding user", http.StatusBadRequest, nil)
 	} else {
-		if image, err := c.FormFile("image"); err != nil {
-			usr.Res.CustomResponse(c, "Content-Type", "application/json", "error", "no image provided", http.StatusBadRequest, nil)
+		if image, errImg := c.FormFile("image"); errImg != nil {
+			usr.Res.CustomResponse(c, "Content-Type", "application/json", "error", errImg.Error(), http.StatusBadRequest, nil)
 		} else {
-			filename := user.Full_name + "_" + image.Filename
+			filename := random.RandomString(32)
 			imageUrl := config.AssetUsersImages + filename
 			if err := c.SaveUploadedFile(image, imageUrl); err != nil {
-				usr.Res.CustomResponse(c, "Content-Type", "application/json", "error", "error when uploading images", http.StatusInternalServerError, nil)
+				usr.Res.CustomResponse(c, "Content-Type", "application/json", "error", err.Error(), http.StatusInternalServerError, nil)
 			} else {
 				user.Image = imageUrl
 				if err := userModel.Create(&user); err != nil {
-					usr.Res.CustomResponse(c, "Content-Type", "application/json", "error", err.Error(), http.StatusBadRequest, nil)
+					usr.Res.CustomResponse(c, "Content-Type", "application/json", "error", err.Error(), http.StatusInternalServerError, nil)
 				} else {
 					usr.Res.CustomResponse(c, "Content-Type", "application/json", "success", "user created", http.StatusOK, user)
 					return
@@ -78,23 +79,24 @@ func (usr *UserHandler) Update(c *gin.Context) {
 		} else {
 			var existedUser userModel.User
 			if errUserExist := userModel.Get(&existedUser, numId); errUserExist != nil {
-				usr.Res.CustomResponse(c, "Content-Type", "application/json", "error", "user not found", http.StatusNotFound, nil)
+				usr.Res.CustomResponse(c, "Content-Type", "application/json", "error", errUserExist.Error(), http.StatusInternalServerError, nil)
 			} else {
 				if image, err := c.FormFile("image"); err != nil {
 					user.Image = existedUser.Image
 				} else {
-					filename := user.Full_name + "_" + image.Filename
+					filename := random.RandomString(32)
 					imageUrl := config.AssetUsersImages + filename
 					if err := c.SaveUploadedFile(image, imageUrl); err != nil {
-						usr.Res.CustomResponse(c, "Content-Type", "application/json", "error", "error when uploading images", http.StatusInternalServerError, nil)
+						usr.Res.CustomResponse(c, "Content-Type", "application/json", "error", err.Error(), http.StatusInternalServerError, nil)
 					} else {
 						user.Image = imageUrl
 						os.Remove(existedUser.Image)
 					}
 				}
 				if err := userModel.Update(&user, numId); err != nil {
-					usr.Res.CustomResponse(c, "Content-Type", "application/json", "error", err.Error(), http.StatusBadRequest, nil)
+					usr.Res.CustomResponse(c, "Content-Type", "application/json", "error", err.Error(), http.StatusInternalServerError, nil)
 				} else {
+					user.Id = existedUser.Id
 					usr.Res.CustomResponse(c, "Content-Type", "application/json", "success", "user updated", http.StatusOK, user)
 				}
 			}
@@ -112,7 +114,7 @@ func (usr *UserHandler) Delete(c *gin.Context) {
 		var user userModel.User
 
 		if errUserExist := userModel.Get(&user, numId); errUserExist != nil {
-			usr.Res.CustomResponse(c, "Content-Type", "application/json", "error", "user not found", http.StatusNotFound, nil)
+			usr.Res.CustomResponse(c, "Content-Type", "application/json", "error", errUserExist.Error(), http.StatusInternalServerError, nil)
 		} else {
 			userImageUrl := user.Image
 			if err := userModel.Delete(&user, numId); err != nil {

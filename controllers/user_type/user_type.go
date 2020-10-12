@@ -32,7 +32,7 @@ func (usrType *UserTypeHandler) Get(c *gin.Context) {
 	} else {
 		var userType userTypeModel.User_Type
 		if err := userTypeModel.Get(&userType, numId); err != nil {
-			usrType.Res.CustomResponse(c, "Content-Type", "application/json", "error", "user type not found", http.StatusNotFound, nil)
+			usrType.Res.CustomResponse(c, "Content-Type", "application/json", "error", err.Error(), http.StatusInternalServerError, nil)
 		} else {
 			usrType.Res.CustomResponse(c, "Content-Type", "application/json", "success", "null", http.StatusOK, userType)
 			return
@@ -67,12 +67,13 @@ func (usrType *UserTypeHandler) Update(c *gin.Context) {
 		} else {
 			var existedUserType userTypeModel.User_Type
 			if errUserTypeExist := userTypeModel.Get(&existedUserType, numId); errUserTypeExist != nil {
-				usrType.Res.CustomResponse(c, "Content-Type", "application/json", "error", "user type not found", http.StatusNotFound, nil)
+				usrType.Res.CustomResponse(c, "Content-Type", "application/json", "error", "user not found", http.StatusNotFound, nil)
 			} else {
 				if err := userTypeModel.Update(&userType, numId); err != nil {
 					usrType.Res.CustomResponse(c, "Content-Type", "application/json", "error", err.Error(), http.StatusInternalServerError, nil)
 				} else {
-					usrType.Res.CustomResponse(c, "Content-Type", "application/json", "success", "user type updated", http.StatusOK, nil)
+					userType.Id = existedUserType.Id
+					usrType.Res.CustomResponse(c, "Content-Type", "application/json", "success", "user type updated", http.StatusOK, userType)
 				}
 			}
 		}

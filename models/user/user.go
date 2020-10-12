@@ -26,7 +26,7 @@ func Get(user *User, id int) (err error) {
 }
 
 func Create(user *User) (err error) {
-	hashedPassword := Hash.GetMD5Hash(user.Password)
+	hashedPassword := Hash.GetSha1Hash(user.Password)
 	user.Password = hashedPassword
 
 	if err := connection.Create(user).Error; err != nil {
@@ -36,7 +36,7 @@ func Create(user *User) (err error) {
 }
 
 func Update(updatedUser *User, id int) (err error) {
-	hashedPassword := Hash.GetMD5Hash(updatedUser.Password)
+	hashedPassword := Hash.GetSha1Hash(updatedUser.Password)
 
 	var existedUser User
 	connection.Where("id=?", id).First(&existedUser)
