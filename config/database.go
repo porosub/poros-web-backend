@@ -55,9 +55,9 @@ func (dbsql *DBMySQL) DbURL(dbConfig *DBConfig) string {
 		dbConfig.Password,
 		dbConfig.Host,
 		dbConfig.Port,
-		dbConfig.DBName,
-	)
+		dbConfig.DBName, )
 }
+
 
 func (dbsql *DBMySQL) MysqlConn() *gorm.DB {
 	result, err := gorm.Open(mysql.Open(dbsql.DbURL(dbsql.BuildDBConfig())), &gorm.Config{})
