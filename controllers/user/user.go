@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 )
 
 type UserHandler struct {
@@ -51,7 +52,8 @@ func (usr *UserHandler) Create(c *gin.Context) {
 		if image, errImg := c.FormFile("image"); errImg != nil {
 			usr.Res.CustomResponse(c, "Content-Type", "application/json", "error", errImg.Error(), http.StatusBadRequest, nil)
 		} else {
-			filename := random.RandomString(32)
+			contentType := strings.Split(image.Header.Get("Content-Type"), "/")
+			filename := random.RandomString(32) + "." + contentType[1]
 			imageUrl := config.AssetUsersImages + filename
 			if err := c.SaveUploadedFile(image, imageUrl); err != nil {
 				usr.Res.CustomResponse(c, "Content-Type", "application/json", "error", err.Error(), http.StatusInternalServerError, nil)
@@ -84,7 +86,8 @@ func (usr *UserHandler) Update(c *gin.Context) {
 				if image, err := c.FormFile("image"); err != nil {
 					user.Image = existedUser.Image
 				} else {
-					filename := random.RandomString(32)
+					contentType := strings.Split(image.Header.Get("Content-Type"), "/")
+					filename := random.RandomString(32) + "." + contentType[1]
 					imageUrl := config.AssetUsersImages + filename
 					if err := c.SaveUploadedFile(image, imageUrl); err != nil {
 						usr.Res.CustomResponse(c, "Content-Type", "application/json", "error", err.Error(), http.StatusInternalServerError, nil)
