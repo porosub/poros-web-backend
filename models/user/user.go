@@ -25,6 +25,13 @@ func Get(user *User, id int) (err error) {
 	return nil
 }
 
+func GetByUsername(user *User, username string) (err error) {
+	if err = connection.Where("username = ?", username).First(user).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
 func Create(user *User) (err error) {
 	hashedPassword := Hash.GetSha1Hash(user.Password)
 	user.Password = hashedPassword
@@ -53,8 +60,7 @@ func Update(updatedUser *User, id int) (err error) {
 	return nil
 }
 
-
-func Delete (user *User, id int) (err error) {
+func Delete(user *User, id int) (err error) {
 	if err := connection.Unscoped().Where("id=?", id).Delete(&user).Error; err != nil {
 		return err
 	}

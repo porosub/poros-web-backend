@@ -16,6 +16,6 @@ func GetMD5Hash(text string) string {
 func GetSha1Hash(text string) string {
 	hasher := sha1.New()
 	hasher.Write([]byte(text))
-	encrypted := sha1.Sum(nil)
+	encrypted := hasher.Sum(nil)
 	return fmt.Sprintf("%x", encrypted)
 }
