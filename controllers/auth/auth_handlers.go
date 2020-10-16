@@ -52,7 +52,6 @@ func (a *AuthHandlers) Login(c *gin.Context) {
 		a.sendError(c, 401, Hash.GetSha1Hash(data.Password))
 		return
 	}
-	a.sendSuccess(c, "", nil)
 	accessToken, err := a.Token.GenerateToken(data.Username, usr.User_type_id)
 	if err != nil {
 		a.sendError(c, 500, err.Error())
