@@ -2,27 +2,29 @@ package routes
 
 import (
 	"net/http"
+
+	"github.com/divisi-developer-poros/poros-web-backend/controllers/auth"
 	"github.com/divisi-developer-poros/poros-web-backend/controllers/tag"
-	"github.com/divisi-developer-poros/poros-web-backend/middleware"
+	test "github.com/divisi-developer-poros/poros-web-backend/controllers/testing"
 	userController "github.com/divisi-developer-poros/poros-web-backend/controllers/user"
 	UserTypeController "github.com/divisi-developer-poros/poros-web-backend/controllers/user_type"
+	"github.com/divisi-developer-poros/poros-web-backend/middleware"
 	"github.com/divisi-developer-poros/poros-web-backend/utils/storage"
-	test "github.com/divisi-developer-poros/poros-web-backend/controllers/testing"
 	"github.com/gin-gonic/gin"
-
 )
 
 var (
-	TestingHandlers test.Cobs
-	TagHandlers     tag.HandlerTag
-	TokenMiddleware middleware.TokenMiddleware
-	UserHandlers	userController.UserHandler
+	TestingHandlers  test.Cobs
+	TagHandlers      tag.HandlerTag
+	TokenMiddleware  middleware.TokenMiddleware
+	AuthHandlers     auth.AuthHandlers
+	UserHandlers     userController.UserHandler
 	UserTypeHandlers UserTypeController.UserTypeHandler
 )
 
 type Test struct {
-	message	string
-	status int
+	message string
+	status  int
 }
 
 // Start inisialisasi route yang digunakan
@@ -35,13 +37,17 @@ func Start() {
 
 	// Example Of JWT Middleware
 	r.GET("/guest", TestingHandlers.Guest)
-	r.POST("/login", TestingHandlers.Login)
 	r.GET("/home", TokenMiddleware.AuthorizeToken, TestingHandlers.Home)
+
+	// Auth routes
+	r.POST("/auth/login", AuthHandlers.Login)
+	r.GET("/auth/me", TokenMiddleware.AuthorizeToken, AuthHandlers.Me)
+	r.GET("/auth/logout", AuthHandlers.Logout)
 
 	// user routes
 	r.GET("/users", TokenMiddleware.AuthorizeToken, UserHandlers.GetAll)
 	r.GET("/users/:id", TokenMiddleware.AuthorizeToken, UserHandlers.Get)
-	r.POST("/users", TokenMiddleware.AuthorizeToken, UserHandlers.Create)
+	r.POST("/users", UserHandlers.Create)
 	r.PUT("/users/:id", TokenMiddleware.AuthorizeToken, UserHandlers.Update)
 	r.DELETE("/users/:id", TokenMiddleware.AuthorizeToken, UserHandlers.Delete)
 

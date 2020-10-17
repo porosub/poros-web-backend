@@ -1,12 +1,13 @@
 package middleware
 
 import (
-	"fmt"
+	"net/http"
+	"strings"
+
+	"github.com/dgrijalva/jwt-go"
 	jt "github.com/divisi-developer-poros/poros-web-backend/models/token"
 	"github.com/divisi-developer-poros/poros-web-backend/utils/response"
 	"github.com/gin-gonic/gin"
-	"net/http"
-	"strings"
 )
 
 type TokenMiddleware struct {
@@ -42,6 +43,12 @@ func (tm *TokenMiddleware) AuthorizeToken(c *gin.Context) {
 		c.AbortWithStatus(http.StatusUnauthorized)
 		return
 	} else {
-		fmt.Println(claims)
+		clms, ok := claims.Claims.(jwt.MapClaims)
+		if ok {
+			username, ok := clms["username"].(string)
+			if ok {
+				c.Writer.Header().Set("User", username)
+			}
+		}
 	}
 }
