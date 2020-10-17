@@ -26,7 +26,7 @@ func Get(user *User, id int) (err error) {
 }
 
 func GetByUsername(user *User, username string) (err error) {
-	if err = connection.Where("username = ?", username).First(user).Error; err != nil {
+	if err = connection.Where("username = ?", username).Preload("User_Type").First(user).Error; err != nil {
 		return err
 	}
 	return nil
