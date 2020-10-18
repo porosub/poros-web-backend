@@ -4,6 +4,8 @@ import (
 	"net/http"
 
 	"github.com/divisi-developer-poros/poros-web-backend/controllers/auth"
+	"github.com/divisi-developer-poros/poros-web-backend/controllers/post"
+	"github.com/divisi-developer-poros/poros-web-backend/controllers/posttype"
 	"github.com/divisi-developer-poros/poros-web-backend/controllers/tag"
 	test "github.com/divisi-developer-poros/poros-web-backend/controllers/testing"
 	userController "github.com/divisi-developer-poros/poros-web-backend/controllers/user"
@@ -18,6 +20,8 @@ var (
 	TagHandlers      tag.HandlerTag
 	TokenMiddleware  middleware.TokenMiddleware
 	AuthHandlers     auth.AuthHandlers
+	PostHandler      post.PostHandler
+	PostTypeHandler  posttype.PostTypeHandler
 	UserHandlers     userController.UserHandler
 	UserTypeHandlers UserTypeController.UserTypeHandler
 )
@@ -71,6 +75,20 @@ func Start() {
 	r.POST("/tags", TokenMiddleware.AuthorizeToken, TagHandlers.CreateTag)
 	r.PUT("/tags/:id", TokenMiddleware.AuthorizeToken, TagHandlers.UpdateTagByID)
 	r.DELETE("/tags/:id", TokenMiddleware.AuthorizeToken, TagHandlers.DeleteTag)
+
+	// post type routes
+	r.GET("/posttypes", TokenMiddleware.AuthorizeToken, PostTypeHandler.List)
+	r.GET("/posttypes/:id", TokenMiddleware.AuthorizeToken, PostTypeHandler.Get)
+	r.POST("/posttypes", TokenMiddleware.AuthorizeToken, PostTypeHandler.Create)
+	r.PUT("/posttypes/:id", TokenMiddleware.AuthorizeToken, PostTypeHandler.Update)
+	r.DELETE("/posttypes/:id", TokenMiddleware.AuthorizeToken, PostTypeHandler.Delete)
+
+	// post routes
+	r.GET("/posts", TokenMiddleware.AuthorizeToken, PostHandler.List)
+	r.GET("/posts/:id", TokenMiddleware.AuthorizeToken, PostHandler.Get)
+	r.POST("/posts", TokenMiddleware.AuthorizeToken, PostHandler.Create)
+	r.PUT("/posts/:id", TokenMiddleware.AuthorizeToken, PostHandler.Update)
+	r.DELETE("/posts/:id", TokenMiddleware.AuthorizeToken, PostHandler.Delete)
 
 	r.Run()
 }
