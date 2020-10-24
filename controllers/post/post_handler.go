@@ -1,15 +1,17 @@
 package post
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 
+	"github.com/divisi-developer-poros/poros-web-backend/config"
 	"github.com/divisi-developer-poros/poros-web-backend/models/post"
 	"github.com/divisi-developer-poros/poros-web-backend/models/posttype"
 	"github.com/divisi-developer-poros/poros-web-backend/models/user"
 	"github.com/divisi-developer-poros/poros-web-backend/utils/response"
+	"github.com/divisi-developer-poros/poros-web-backend/utils/storage"
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 )
 
 type PostHandler struct {
@@ -63,113 +65,97 @@ func (h *PostHandler) Get(c *gin.Context) {
 }
 
 func (h *PostHandler) Create(c *gin.Context) {
-	var data post.Post
-	if err := c.ShouldBind(&data); err != nil {
-		h.sendError(c, http.StatusUnprocessableEntity, err.Error())
+	var p post.Post
+	if err := c.ShouldBindWith(&p, binding.FormMultipart); err != nil {
+		h.sendError(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	// Assign authenticated user to post creator
-	var usr user.User
-	if err := user.GetByUsername(&usr, c.Writer.Header().Get("User")); err != nil {
-		h.sendError(c, http.StatusInternalServerError, err.Error())
+	idInt, _ := strconv.Atoi(c.PostForm("user_id"))
+	if err := user.Get(&user.User{}, idInt); err != nil {
+		h.sendError(c, http.StatusBadRequest, err.Error())
 		return
 	}
-	data.UserID = usr.Id
-	usr.Password = ""
-	data.User = usr
-	result, err := h.PostModel.Create(&data)
+	p.UserID = uint(idInt)
 
-	// Validate post type
-	postType, err := h.PostTypeModel.Get(data.PostTypeID)
+	filenames, err := storage.StoreFiles(c, "images", config.AssetPostsImages)
 	if err != nil {
-		h.sendError(c, http.StatusBadRequest, fmt.Sprintf("Post Type ID %d not found.", data.PostTypeID))
+		h.sendError(c, http.StatusBadRequest, err.Error())
 		return
 	}
-	data.PostType = *postType
 
-	h.sendSuccess(c, "Created", result)
-	return
+	h.PostModel.LinkImagesName(&p, *filenames)
+
+	if _, err = h.PostModel.Create(&p); err != nil {
+		h.sendError(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	h.sendSuccess(c, "", p)
 }
 
 func (h *PostHandler) Update(c *gin.Context) {
+	// Mengambil post lama
 	id, err := strconv.Atoi(c.Params.ByName("id"))
 	if err != nil {
-		h.sendError(c, http.StatusUnprocessableEntity, err.Error())
+		h.sendError(c, http.StatusBadRequest, err.Error())
 		return
 	}
-	var data post.Post
-	if err := c.ShouldBind(&data); err != nil {
-		h.sendError(c, http.StatusUnprocessableEntity, err.Error())
-		return
-	}
-	data.ID = uint(id)
 
-	postData, err := h.PostModel.Get(uint(id))
+	p, err := h.PostModel.Get(uint(id))
 	if err != nil {
 		h.sendError(c, http.StatusNotFound, err.Error())
 		return
 	}
-	data.CreatedAt = postData.CreatedAt
 
-	// Validate user
-	var usr user.User
-	if err := user.GetByUsername(&usr, c.Writer.Header().Get("User")); err != nil {
-		h.sendError(c, http.StatusInternalServerError, err.Error())
+	// Mengambil post baru
+	if err := c.ShouldBindWith(&p, binding.FormMultipart); err != nil {
+		h.sendError(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	if postData.UserID != usr.Id {
-		h.sendError(c, http.StatusForbidden, "This post isn't your owns")
+	idInt, _ := strconv.Atoi(c.PostForm("user_id"))
+	if err := user.Get(&user.User{}, idInt); err != nil {
+		h.sendError(c, http.StatusBadRequest, err.Error())
 		return
 	}
-	data.UserID = usr.Id
-	data.User = usr
+	p.UserID = uint(idInt)
 
-	// Validate post type
-	postType, err := h.PostTypeModel.Get(data.PostTypeID)
+	// Hapus gambar lama
+	if err := h.PostModel.DeletePostImages(p); err != nil {
+		h.sendError(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	// Menyimpan gambar baru
+	filenames, err := storage.StoreFiles(c, "images", config.AssetPostsImages)
 	if err != nil {
-		h.sendError(c, http.StatusBadRequest, fmt.Sprintf("Post Type ID %d not found.", data.PostTypeID))
+		h.sendError(c, http.StatusBadRequest, err.Error())
 		return
 	}
-	data.PostType = *postType
+	h.PostModel.LinkImagesName(p, *filenames)
 
-	result, err := h.PostModel.Update(&data)
-	if err != nil {
-		h.sendError(c, http.StatusInternalServerError, err.Error())
+	// Mengubah post di db
+	if _, err := h.PostModel.Update(p); err != nil {
+		h.sendError(c, http.StatusBadRequest, err.Error())
 		return
 	}
-	result.User.Password = ""
-	result.PostImage = postData.PostImage
-	h.sendSuccess(c, "Updated", result)
+
+	h.sendSuccess(c, "", p)
 }
 
 func (h *PostHandler) Delete(c *gin.Context) {
 	id, err := strconv.Atoi(c.Params.ByName("id"))
 	if err != nil {
-		h.sendError(c, http.StatusUnprocessableEntity, err.Error())
-		return
-	}
-
-	// Get post
-	postData, err := h.PostModel.Get(uint(id))
-	if err != nil {
-		h.sendError(c, http.StatusNotFound, err.Error())
-		return
-	}
-
-	if postData.User.Username != c.Writer.Header().Get("User") {
-		h.sendError(c, http.StatusForbidden, "This post isn't your own.")
+		h.sendError(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	if err := h.PostModel.Delete(uint(id)); err != nil {
-		h.sendError(c, http.StatusInternalServerError, err.Error())
+		h.sendError(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	h.Res.CustomResponse(c, "Content-Type",
-		"application/json", "success",
-		"Deleted.", http.StatusNoContent, nil)
+	h.sendSuccess(c, "", nil)
 	return
 }

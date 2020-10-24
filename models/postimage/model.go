@@ -1,6 +1,7 @@
 package postimage
 
+// PostImage model
 type PostImage struct {
-	ID    uint   `json:"id" gorm:"primaryKey"`
-	Image string `json:"image" gorm:"type:longtext null;"`
+	ID    uint   `json:"id" gorm:"primaryKey;autoIncrement:false;"`
+	Image string `json:"image" gorm:"primaryKey;autoIncrement:false"`
 }

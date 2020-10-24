@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"mime/multipart"
 	"net/http"
+	"os"
 	"path/filepath"
 
 	"github.com/divisi-developer-poros/poros-web-backend/config"
@@ -70,6 +71,14 @@ func StoreFiles(c *gin.Context, field string, location string) (*[]string, error
 		filenames = append(filenames, filename)
 	}
 	return &filenames, nil
+}
+
+// RemoveFile menghapus file yang dituju
+func RemoveFile(path string) error {
+	if err := os.Remove(path); err != nil {
+		return err
+	}
+	return nil
 }
 
 func store(c *gin.Context, file *multipart.FileHeader, location string) (string, error) {
