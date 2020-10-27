@@ -22,6 +22,7 @@ type PostTypeHandlerInterface interface {
 	Delete(c *gin.Context)
 }
 
+// List ... get all post type
 func (h *PostTypeHandler) List(c *gin.Context) {
 	data, err := h.PostTypeModel.List()
 	if err != nil {
@@ -30,6 +31,7 @@ func (h *PostTypeHandler) List(c *gin.Context) {
 	h.Res.CustomResponse(c, "Content-Type", "application/json", "success", "", http.StatusOK, data)
 }
 
+// Get ... get post type
 func (h *PostTypeHandler) Get(c *gin.Context) {
 	id, err := strconv.Atoi(c.Params.ByName("id"))
 	if err != nil {
@@ -53,6 +55,7 @@ func (h *PostTypeHandler) Get(c *gin.Context) {
 	return
 }
 
+// Create ... create post type
 func (h *PostTypeHandler) Create(c *gin.Context) {
 	var data posttype.PostType
 	if err := c.ShouldBind(&data); err != nil {
@@ -72,10 +75,11 @@ func (h *PostTypeHandler) Create(c *gin.Context) {
 
 	h.Res.CustomResponse(c, "Content-Type",
 		"application/json", "success",
-		"Created.", http.StatusCreated, result)
+		"", http.StatusCreated, result)
 	return
 }
 
+// Update ... update post type
 func (h *PostTypeHandler) Update(c *gin.Context) {
 	id, err := strconv.Atoi(c.Params.ByName("id"))
 	if err != nil {
@@ -104,10 +108,11 @@ func (h *PostTypeHandler) Update(c *gin.Context) {
 
 	h.Res.CustomResponse(c, "Content-Type",
 		"application/json", "success",
-		"Updated.", http.StatusOK, result)
+		"", http.StatusOK, result)
 	return
 }
 
+// Delete ... delete post type
 func (h *PostTypeHandler) Delete(c *gin.Context) {
 	id, err := strconv.Atoi(c.Params.ByName("id"))
 	if err != nil {
@@ -126,6 +131,6 @@ func (h *PostTypeHandler) Delete(c *gin.Context) {
 
 	h.Res.CustomResponse(c, "Content-Type",
 		"application/json", "success",
-		"Deleted.", http.StatusNoContent, nil)
+		"", http.StatusOK, nil)
 	return
 }

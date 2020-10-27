@@ -3,6 +3,8 @@ package post
 import (
 	"github.com/divisi-developer-poros/poros-web-backend/config"
 	"github.com/divisi-developer-poros/poros-web-backend/models/postimage"
+	"github.com/divisi-developer-poros/poros-web-backend/utils/storage"
+	"gorm.io/gorm"
 )
 
 type PostInterface interface {
@@ -11,6 +13,8 @@ type PostInterface interface {
 	Create(post *Post) (*Post, error)
 	Update(post *Post) (*Post, error)
 	Delete(id int) error
+	LinkImagesName(post *Post, images []string) error
+	DeletePostImages(post *Post) error
 }
 
 var (
@@ -46,36 +50,53 @@ func (t *Post) Create(post *Post) (*Post, error) {
 	if err := connection.Create(post).Error; err != nil {
 		return nil, err
 	}
-
-	// Create new empty image
-	var postImageModel postimage.PostImage
-	var err error
-	postImage := &postimage.PostImage{
-		ID:    post.ID,
-		Image: "",
-	}
-	postImage, err = postImageModel.Create(postImage)
-	if err != nil {
-		return nil, err
-	}
-	post.PostImage = *postImage
 	return post, nil
 }
 
 func (t *Post) Update(post *Post) (*Post, error) {
-	if err := connection.Save(post).Error; err != nil {
+	if err := connection.Session(&gorm.Session{FullSaveAssociations: true}).Omit("User", "PostType").Save(post).Error; err != nil {
 		return nil, err
 	}
 	return post, nil
 }
 
 func (t *Post) Delete(id uint) error {
-	if err := connection.Delete(&Post{}, id).Error; err != nil {
+	p, err := t.Get(id)
+	if err != nil {
 		return err
 	}
-	var postImageModel postimage.PostImage
-	if err := postImageModel.Delete(id); err != nil {
+
+	if err = t.DeletePostImages(p); err != nil {
 		return err
 	}
+
+	if err = connection.Delete(&Post{}, id).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+// LinkImagesName ... Link images name with post object
+func (t *Post) LinkImagesName(post *Post, images []string) error {
+	for _, image := range images {
+		var postImage = postimage.PostImage{
+			Image: image,
+		}
+		post.PostImage = append(post.PostImage, postImage)
+	}
+	return nil
+}
+
+func (t *Post) DeletePostImages(post *Post) error {
+	for _, postImage := range post.PostImage {
+		path := config.AssetPostsImages + postImage.Image
+		if err := storage.RemoveFile(path); err != nil {
+			return err
+		}
+		if err := connection.Delete(postImage).Error; err != nil {
+			return err
+		}
+	}
+	post.PostImage = []postimage.PostImage{}
 	return nil
 }
