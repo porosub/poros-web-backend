@@ -24,7 +24,8 @@ var (
 
 func (t *Post) List() (*[]Post, error) {
 	var posts []Post
-	if err := connection.Preload("User").Preload("User.User_Type").Preload("PostType").Preload("PostImage").Find(&posts).Error; err != nil {
+	println(posts)
+	if err := connection.Preload("User").Preload("PostType").Preload("PostImage").Preload("Tags").Find(&posts).Error; err != nil {
 		return nil, err
 	}
 

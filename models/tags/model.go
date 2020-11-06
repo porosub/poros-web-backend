@@ -1,8 +1,11 @@
 package tags
 
+import (
+	"github.com/divisi-developer-poros/poros-web-backend/models/base"
+)
+
 type Tag struct {
-	ID        int       `gorm:"primaryKey" json:"id"`
-	Name      string    `gorm:"not null" json:"name"`
+	base.Tag
 }
 
 func (t *Tag) TableName() string {
