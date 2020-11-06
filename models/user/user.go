@@ -66,3 +66,12 @@ func Delete(user *User, id int) (err error) {
 	}
 	return nil
 }
+
+// SignIn ... Sign in user with username and password
+func SignIn(user *User, username string, password string) (err error) {
+	hashedPassword := Hash.GetSha1Hash(password)
+	if err = connection.Where("username = ? AND password = ?", username, hashedPassword).Preload("User_Type").First(&user).Error; err != nil {
+		return err
+	}
+	return nil
+}

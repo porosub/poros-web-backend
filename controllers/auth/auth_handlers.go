@@ -7,7 +7,6 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/divisi-developer-poros/poros-web-backend/models/token"
 	"github.com/divisi-developer-poros/poros-web-backend/models/user"
-	"github.com/divisi-developer-poros/poros-web-backend/utils/Hash"
 	"github.com/divisi-developer-poros/poros-web-backend/utils/response"
 	"github.com/gin-gonic/gin"
 )
@@ -37,29 +36,30 @@ func (a *AuthHandlers) sendError(c *gin.Context, status int, message string) {
 }
 
 func (a *AuthHandlers) Login(c *gin.Context) {
-	var data LoginForm
-	if err := c.ShouldBind(&data); err != nil {
-		a.sendError(c, 422, err.Error())
+	var loginForm LoginForm
+	var u user.User
+	if err := c.ShouldBindJSON(&loginForm); err != nil {
+		a.sendError(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	var usr user.User
-	if err := user.GetByUsername(&usr, data.Username); err != nil {
-		a.sendError(c, 401, "Unauthorized.")
+	if err := user.SignIn(&u, loginForm.Username, loginForm.Password); err != nil {
+		a.sendError(c, http.StatusNotFound, err.Error())
 		return
 	}
-	if Hash.GetSha1Hash(data.Password) != usr.Password {
-		a.sendError(c, 401, Hash.GetSha1Hash(data.Password))
-		return
-	}
-	accessToken, err := a.Token.GenerateToken(data.Username, usr.User_type_id)
+
+	accessToken, err := a.Token.GenerateToken(u.Username, u.User_type_id)
 	if err != nil {
-		a.sendError(c, 500, err.Error())
+		a.sendError(c, http.StatusInternalServerError, err.Error())
 		return
 	}
+
+	u.Password = ""
 	a.sendSuccess(c, "", gin.H{
+		"user":         u,
 		"access_token": accessToken,
 	})
+
 }
 
 func (a *AuthHandlers) Logout(c *gin.Context) {
