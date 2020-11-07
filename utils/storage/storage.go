@@ -2,6 +2,7 @@ package storage
 
 import (
 	"fmt"
+	"io"
 	"mime/multipart"
 	"net/http"
 	"os"
@@ -40,7 +41,7 @@ func StoreFile(c *gin.Context, field string, location string) (string, error) {
 		return "", err
 	}
 
-	filename, err := store(c, file, location)
+	filename, err := store(file, location)
 	if err != nil {
 		return "", err
 	}
@@ -64,13 +65,37 @@ func StoreFiles(c *gin.Context, field string, location string) (*[]string, error
 	}
 
 	for _, file := range files {
-		filename, err := store(c, file, location)
+		filename, err := store(file, location)
 		if err != nil {
 			return nil, err
 		}
 		filenames = append(filenames, filename)
 	}
 	return &filenames, nil
+}
+
+// StoreFileBlob menyimpan satu file blob yang terupload ke lokasi yang dituju
+func StoreFileBlob(fileBlob *multipart.FileHeader, location string) (string, error) {
+	filename, err := store(fileBlob, location)
+	if err != nil {
+		return "", err
+	}
+
+	return filename, nil
+}
+
+// StoreFilesBlob menyimpan beberapa file blob yang terupload ke lokasi yang dituju
+func StoreFilesBlob(filesBlob []*multipart.FileHeader, location string) ([]string, error) {
+	filenames := make([]string, 0, 4)
+
+	for _, file := range filesBlob {
+		filename, err := store(file, location)
+		if err != nil {
+			return nil, err
+		}
+		filenames = append(filenames, filename)
+	}
+	return filenames, nil
 }
 
 // RemoveFile menghapus file yang dituju
@@ -81,12 +106,29 @@ func RemoveFile(path string) error {
 	return nil
 }
 
-func store(c *gin.Context, file *multipart.FileHeader, location string) (string, error) {
+func store(file *multipart.FileHeader, location string) (string, error) {
 	filename := random.RandomString(40) + filepath.Ext(file.Filename)
 	dest := location + filename
 
-	if err := c.SaveUploadedFile(file, dest); err != nil {
+	if err := saveUploadedFile(file, dest); err != nil {
 		return "", err
 	}
 	return filename, nil
+}
+
+func saveUploadedFile(file *multipart.FileHeader, dst string) error {
+	src, err := file.Open()
+	if err != nil {
+		return err
+	}
+	defer src.Close()
+
+	out, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	_, err = io.Copy(out, src)
+	return err
 }

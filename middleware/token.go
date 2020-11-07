@@ -10,11 +10,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// TokenMiddleware ... Token middleware struct declaration
 type TokenMiddleware struct {
 	ResponseEntity response.Response
 	JWT            jt.JWTToken
 }
 
+// AuthorizeToken ... Token Validation
 func (tm *TokenMiddleware) AuthorizeToken(c *gin.Context) {
 	token := c.GetHeader("Authorization")
 	if len(token) == 0 {
@@ -42,13 +44,13 @@ func (tm *TokenMiddleware) AuthorizeToken(c *gin.Context) {
 			nil)
 		c.AbortWithStatus(http.StatusUnauthorized)
 		return
-	} else {
-		clms, ok := claims.Claims.(jwt.MapClaims)
+	}
+
+	clms, ok := claims.Claims.(jwt.MapClaims)
+	if ok {
+		username, ok := clms["username"].(string)
 		if ok {
-			username, ok := clms["username"].(string)
-			if ok {
-				c.Writer.Header().Set("User", username)
-			}
+			c.Writer.Header().Set("User", username)
 		}
 	}
 }

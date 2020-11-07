@@ -9,21 +9,22 @@ import (
 	"github.com/divisi-developer-poros/poros-web-backend/controllers/tag"
 	test "github.com/divisi-developer-poros/poros-web-backend/controllers/testing"
 	userController "github.com/divisi-developer-poros/poros-web-backend/controllers/user"
-	UserTypeController "github.com/divisi-developer-poros/poros-web-backend/controllers/user_type"
+	UserTypeController "github.com/divisi-developer-poros/poros-web-backend/controllers/usertype"
 	"github.com/divisi-developer-poros/poros-web-backend/middleware"
 	"github.com/divisi-developer-poros/poros-web-backend/utils/storage"
 	"github.com/gin-gonic/gin"
 )
 
 var (
-	TestingHandlers  test.Cobs
-	TagHandlers      tag.HandlerTag
-	TokenMiddleware  middleware.TokenMiddleware
-	AuthHandlers     auth.AuthHandlers
-	PostHandler      post.PostHandler
-	PostTypeHandler  posttype.PostTypeHandler
-	UserHandlers     userController.UserHandler
-	UserTypeHandlers UserTypeController.UserTypeHandler
+	TestingHandlers    test.Cobs
+	TagHandlers        tag.HandlerTag
+	TokenMiddleware    middleware.TokenMiddleware
+	MetadataMiddleware middleware.MetadataMiddleware
+	AuthHandlers       auth.AuthHandlers
+	PostHandler        post.PostHandler
+	PostTypeHandler    posttype.PostTypeHandler
+	UserHandlers       userController.UserHandler
+	UserTypeHandlers   UserTypeController.UserTypeHandler
 )
 
 type Test struct {
@@ -34,6 +35,8 @@ type Test struct {
 // Start inisialisasi route yang digunakan
 func Start() {
 	r := gin.Default()
+
+	r.Use(MetadataMiddleware.Handler)
 
 	r.GET("/", func(c *gin.Context) {
 		c.String(http.StatusOK, "Hello World!")
@@ -51,7 +54,7 @@ func Start() {
 	// user routes
 	r.GET("/users", TokenMiddleware.AuthorizeToken, UserHandlers.GetAll)
 	r.GET("/users/:id", TokenMiddleware.AuthorizeToken, UserHandlers.Get)
-	r.POST("/users", UserHandlers.Create)
+	r.POST("/users", TokenMiddleware.AuthorizeToken, UserHandlers.Create)
 	r.PUT("/users/:id", TokenMiddleware.AuthorizeToken, UserHandlers.Update)
 	r.DELETE("/users/:id", TokenMiddleware.AuthorizeToken, UserHandlers.Delete)
 
@@ -89,6 +92,10 @@ func Start() {
 	r.POST("/posts", TokenMiddleware.AuthorizeToken, PostHandler.Create)
 	r.PUT("/posts/:id", TokenMiddleware.AuthorizeToken, PostHandler.Update)
 	r.DELETE("/posts/:id", TokenMiddleware.AuthorizeToken, PostHandler.Delete)
+
+	// Post Tags Attachments
+	r.POST("post-attach-tags/:post_id", TokenMiddleware.AuthorizeToken, PostHandler.AttachTags)
+	r.POST("post-detach-tags/:post_id", TokenMiddleware.AuthorizeToken, PostHandler.DetachTags)
 
 	r.Run()
 }

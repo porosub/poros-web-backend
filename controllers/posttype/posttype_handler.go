@@ -9,11 +9,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// PostTypeHandler ... Post type handler struct declaration
 type PostTypeHandler struct {
 	PostTypeModel posttype.PostType
 	Res           response.Response
 }
 
+// PostTypeHandlerInterface ... Post type handler struct declaration
 type PostTypeHandlerInterface interface {
 	List(c *gin.Context)
 	Get(c *gin.Context)

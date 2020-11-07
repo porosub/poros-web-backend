@@ -1,19 +1,23 @@
-package user_type
+package usertype
+
 import (
-	userTypeModel "github.com/divisi-developer-poros/poros-web-backend/models/user_type"
-	r "github.com/divisi-developer-poros/poros-web-backend/utils/response"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
+
+	userTypeModel "github.com/divisi-developer-poros/poros-web-backend/models/usertype"
+	r "github.com/divisi-developer-poros/poros-web-backend/utils/response"
+	"github.com/gin-gonic/gin"
 )
 
+// UserTypeHandler ... User type handler struct declaration
 type UserTypeHandler struct {
-	Model	userTypeModel.User_Type
-	Res     r.Response
+	Model userTypeModel.UserType
+	Res   r.Response
 }
 
+// GetAll ... Get all user type
 func (usrType *UserTypeHandler) GetAll(c *gin.Context) {
-	var userTypes []userTypeModel.User_Type
+	var userTypes []userTypeModel.UserType
 
 	if err := userTypeModel.GetAll(&userTypes); err != nil {
 		usrType.Res.CustomResponse(c, "Content-Type", "application/json", "error", err.Error(), http.StatusInternalServerError, nil)
@@ -24,13 +28,14 @@ func (usrType *UserTypeHandler) GetAll(c *gin.Context) {
 
 }
 
+// Get ... Get single user type
 func (usrType *UserTypeHandler) Get(c *gin.Context) {
 	id := c.Params.ByName("id")
 
 	if numId, error := strconv.Atoi(id); error != nil {
 		usrType.Res.CustomResponse(c, "Content-Type", "application/json", "error", "ID not valid", http.StatusBadRequest, nil)
 	} else {
-		var userType userTypeModel.User_Type
+		var userType userTypeModel.UserType
 		if err := userTypeModel.Get(&userType, numId); err != nil {
 			usrType.Res.CustomResponse(c, "Content-Type", "application/json", "error", err.Error(), http.StatusInternalServerError, nil)
 		} else {
@@ -40,8 +45,9 @@ func (usrType *UserTypeHandler) Get(c *gin.Context) {
 	}
 }
 
+// Create ... create single user type
 func (usrType *UserTypeHandler) Create(c *gin.Context) {
-	var userType userTypeModel.User_Type
+	var userType userTypeModel.UserType
 
 	if errBind := c.ShouldBindJSON(&userType); errBind != nil {
 		usrType.Res.CustomResponse(c, "Content-Type", "application/json", "error", errBind.Error(), http.StatusBadRequest, nil)
@@ -54,25 +60,26 @@ func (usrType *UserTypeHandler) Create(c *gin.Context) {
 	}
 }
 
+// Update ... update single user type
 func (usrType *UserTypeHandler) Update(c *gin.Context) {
 	id := c.Params.ByName("id")
 
 	if numId, error := strconv.Atoi(id); error != nil {
 		usrType.Res.CustomResponse(c, "Content-Type", "application/json", "error", "ID not valid", http.StatusBadRequest, nil)
 	} else {
-		var userType userTypeModel.User_Type
+		var userType userTypeModel.UserType
 
 		if errBind := c.ShouldBindJSON(&userType); errBind != nil {
 			usrType.Res.CustomResponse(c, "Content-Type", "application/json", "error", errBind.Error(), http.StatusBadRequest, nil)
 		} else {
-			var existedUserType userTypeModel.User_Type
+			var existedUserType userTypeModel.UserType
 			if errUserTypeExist := userTypeModel.Get(&existedUserType, numId); errUserTypeExist != nil {
 				usrType.Res.CustomResponse(c, "Content-Type", "application/json", "error", "user not found", http.StatusNotFound, nil)
 			} else {
 				if err := userTypeModel.Update(&userType, numId); err != nil {
 					usrType.Res.CustomResponse(c, "Content-Type", "application/json", "error", err.Error(), http.StatusInternalServerError, nil)
 				} else {
-					userType.Id = existedUserType.Id
+					userType.ID = existedUserType.ID
 					usrType.Res.CustomResponse(c, "Content-Type", "application/json", "success", "user type updated", http.StatusOK, userType)
 				}
 			}
@@ -80,13 +87,14 @@ func (usrType *UserTypeHandler) Update(c *gin.Context) {
 	}
 }
 
+// Delete ... Delete single user type
 func (usrType *UserTypeHandler) Delete(c *gin.Context) {
 	id := c.Params.ByName("id")
 
 	if numId, error := strconv.Atoi(id); error != nil {
 		usrType.Res.CustomResponse(c, "Content-Type", "application/json", "error", "ID not valid", http.StatusBadRequest, nil)
 	} else {
-		var userType userTypeModel.User_Type
+		var userType userTypeModel.UserType
 		if errUserTypeExist := userTypeModel.Get(&userType, numId); errUserTypeExist != nil {
 			usrType.Res.CustomResponse(c, "Content-Type", "application/json", "error", "user not found", http.StatusNotFound, nil)
 		} else {

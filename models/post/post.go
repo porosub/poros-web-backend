@@ -1,12 +1,15 @@
 package post
 
 import (
+	"mime/multipart"
+
 	"github.com/divisi-developer-poros/poros-web-backend/config"
+	"github.com/divisi-developer-poros/poros-web-backend/models/base"
 	"github.com/divisi-developer-poros/poros-web-backend/models/postimage"
 	"github.com/divisi-developer-poros/poros-web-backend/utils/storage"
-	"gorm.io/gorm"
 )
 
+// PostInterface ... Post interface declaration
 type PostInterface interface {
 	List() (*[]Post, error)
 	Get(id int) (Post, error)
@@ -22,9 +25,10 @@ var (
 	connection = mysql.MysqlConn()
 )
 
+// List ... Get all posts from DB
 func (t *Post) List() (*[]Post, error) {
 	var posts []Post
-	if err := connection.Preload("User").Preload("User.User_Type").Preload("PostType").Preload("PostImage").Find(&posts).Error; err != nil {
+	if err := connection.Preload("User").Preload("PostType").Preload("PostImages").Preload("Tags").Find(&posts).Error; err != nil {
 		return nil, err
 	}
 
@@ -37,58 +41,125 @@ func (t *Post) List() (*[]Post, error) {
 	return &cleanPosts, nil
 }
 
+// Get ... Get single post from DB
 func (t *Post) Get(id uint) (*Post, error) {
 	var post Post
-	if err := connection.Where("id = ?", id).Preload("User").Preload("User.User_Type").Preload("PostType").Preload("PostImage").First(&post).Error; err != nil {
+	if err := connection.Where("id = ?", id).Preload("PostType").Preload("PostImages").Preload("User").Preload("Tags").First(&post).Error; err != nil {
 		return nil, err
 	}
 	post.User.Password = ""
 	return &post, nil
 }
 
-func (t *Post) Create(post *Post) (*Post, error) {
+// Create ... Create single post to DB
+func (t *Post) Create(post *Post, imagesBlob []*multipart.FileHeader) (*Post, error) {
 	if err := connection.Create(post).Error; err != nil {
 		return nil, err
 	}
-	return post, nil
-}
 
-func (t *Post) Update(post *Post) (*Post, error) {
-	if err := connection.Session(&gorm.Session{FullSaveAssociations: true}).Omit("User", "PostType").Save(post).Error; err != nil {
+	imagesName, err := storeImages(imagesBlob)
+	if err != nil {
 		return nil, err
 	}
+
+	if err := appendImages(post, imagesName); err != nil {
+		return nil, err
+	}
+
 	return post, nil
 }
 
+// Update ... Update single post from DB
+func (t *Post) Update(post *Post, id int, imagesBlob []*multipart.FileHeader) (*Post, error) {
+	oldPost, err := t.Get(uint(id))
+	if err != nil {
+		return nil, err
+	}
+
+	if err := connection.Model(&oldPost).Updates(&post).Error; err != nil {
+		return nil, err
+	}
+
+	*post = *oldPost
+	imagesName, err := storeImages(imagesBlob)
+	if err != nil {
+		return nil, err
+	}
+
+	// If there's no image uploaded then update finished
+	if len(imagesName) == 0 {
+		return post, nil
+	}
+
+	if err := t.deletePostImages(post); err != nil {
+		return nil, err
+	}
+
+	if err := appendImages(post, imagesName); err != nil {
+		return nil, err
+	}
+
+	return post, nil
+}
+
+// Delete ... Delete single post from DB
 func (t *Post) Delete(id uint) error {
 	p, err := t.Get(id)
 	if err != nil {
 		return err
 	}
 
-	if err = t.DeletePostImages(p); err != nil {
-		return err
-	}
-
 	if err = connection.Delete(&Post{}, id).Error; err != nil {
 		return err
 	}
+	t.deletePostImages(p)
+
 	return nil
 }
 
-// LinkImagesName ... Link images name with post object
-func (t *Post) LinkImagesName(post *Post, images []string) error {
+// AttachTags attach tags to corresponding post
+func (t *Post) AttachTags(id int, tags *[]base.Tag) (p *Post, err error) {
+	p = &Post{}
+	p.ID = uint(id)
+	if err := connection.Model(&p).Association("Tags").Append(tags); err != nil {
+		return nil, err
+	}
+
+	p, err = t.Get(uint(id))
+	if err != nil {
+		return nil, err
+	}
+	return p, nil
+}
+
+// DetachTags detach tags from corresponding post
+func (t *Post) DetachTags(id int, tags *[]base.Tag) (*Post, error) {
+
+	p, err := t.Get(uint(id))
+	if err != nil {
+		return nil, err
+	}
+
+	if err := connection.Model(&p).Association("Tags").Delete(tags); err != nil {
+		return nil, err
+	}
+	return p, nil
+}
+
+func appendImages(post *Post, images []string) error {
+	var postImages []postimage.PostImage
 	for _, image := range images {
 		var postImage = postimage.PostImage{
 			Image: image,
 		}
-		post.PostImage = append(post.PostImage, postImage)
+		postImages = append(postImages, postImage)
 	}
+	connection.Model(post).Association("PostImages").Append(postImages)
 	return nil
 }
 
-func (t *Post) DeletePostImages(post *Post) error {
-	for _, postImage := range post.PostImage {
+func (t *Post) deletePostImages(post *Post) error {
+	for _, postImage := range post.PostImages {
 		path := config.AssetPostsImages + postImage.Image
 		if err := storage.RemoveFile(path); err != nil {
 			return err
@@ -97,6 +168,18 @@ func (t *Post) DeletePostImages(post *Post) error {
 			return err
 		}
 	}
-	post.PostImage = []postimage.PostImage{}
+	post.PostImages = []postimage.PostImage{}
 	return nil
+}
+
+func storeImages(imagesBlob []*multipart.FileHeader) (filenames []string, err error) {
+	if len(imagesBlob) == 0 {
+		return filenames, nil
+	}
+
+	filenames, err = storage.StoreFilesBlob(imagesBlob, config.AssetPostsImages)
+	if err != nil {
+		return filenames, err
+	}
+	return filenames, nil
 }
