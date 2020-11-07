@@ -32,7 +32,7 @@ func (t *Tag) FetchTags() (*[]Tag, error) {
 // FetchTagByID ... Get single tag from Db
 func (t *Tag) FetchTagByID(id int) (*Tag, error) {
 	var tag Tag
-	if err := connection.Where("id = ?", id).Find(&tag).Error; err != nil {
+	if err := connection.Where("id = ?", id).Preload("Posts").Find(&tag).Error; err != nil {
 		return nil, err
 	}
 

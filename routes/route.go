@@ -90,5 +90,9 @@ func Start() {
 	r.PUT("/posts/:id", TokenMiddleware.AuthorizeToken, PostHandler.Update)
 	r.DELETE("/posts/:id", TokenMiddleware.AuthorizeToken, PostHandler.Delete)
 
+	// Post Tags Attachments
+	r.POST("post-attach-tags/:post_id", TokenMiddleware.AuthorizeToken, PostHandler.AttachTags)
+	r.POST("post-detach-tags/:post_id", TokenMiddleware.AuthorizeToken, PostHandler.DetachTags)
+
 	r.Run()
 }

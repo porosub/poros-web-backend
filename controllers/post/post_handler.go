@@ -1,9 +1,11 @@
 package post
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
+	"github.com/divisi-developer-poros/poros-web-backend/models/base"
 	"github.com/divisi-developer-poros/poros-web-backend/models/post"
 	"github.com/divisi-developer-poros/poros-web-backend/models/posttype"
 	"github.com/divisi-developer-poros/poros-web-backend/utils/response"
@@ -156,4 +158,50 @@ func (h *PostHandler) Delete(c *gin.Context) {
 
 	h.sendSuccess(c, nil)
 	return
+}
+
+// AttachTags attach tags to corresponding post
+func (h *PostHandler) AttachTags(c *gin.Context) {
+	id, err := strconv.Atoi(c.Params.ByName("post_id"))
+	if err != nil {
+		h.sendError(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	fmt.Printf("Your post id %v\n", id)
+
+	var t []base.Tag
+	if err := c.ShouldBindJSON(&t); err != nil {
+		h.sendError(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	p, err := h.PostModel.AttachTags(id, &t)
+	if err != nil {
+		h.sendError(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+	h.sendSuccess(c, p)
+}
+
+// DetachTags detach tags from corresponding post
+func (h *PostHandler) DetachTags(c *gin.Context) {
+	id, err := strconv.Atoi(c.Params.ByName("post_id"))
+	if err != nil {
+		h.sendError(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	var t []base.Tag
+	if err := c.ShouldBindJSON(&t); err != nil {
+		h.sendError(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	p, err := h.PostModel.DetachTags(id, &t)
+	if err != nil {
+		h.sendError(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+	h.sendSuccess(c, p)
 }

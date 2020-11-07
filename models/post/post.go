@@ -4,6 +4,7 @@ import (
 	"mime/multipart"
 
 	"github.com/divisi-developer-poros/poros-web-backend/config"
+	"github.com/divisi-developer-poros/poros-web-backend/models/base"
 	"github.com/divisi-developer-poros/poros-web-backend/models/postimage"
 	"github.com/divisi-developer-poros/poros-web-backend/utils/storage"
 )
@@ -44,7 +45,7 @@ func (t *Post) List() (*[]Post, error) {
 // Get ... Get single post from DB
 func (t *Post) Get(id uint) (*Post, error) {
 	var post Post
-	if err := connection.Where("id = ?", id).Preload("PostType").Preload("PostImages").Preload("User").First(&post).Error; err != nil {
+	if err := connection.Where("id = ?", id).Preload("PostType").Preload("PostImages").Preload("User").Preload("Tags").First(&post).Error; err != nil {
 		return nil, err
 	}
 	post.User.Password = ""
@@ -117,6 +118,35 @@ func (t *Post) Delete(id uint) error {
 		return err
 	}
 	return nil
+}
+
+// AttachTags attach tags to corresponding post
+func (t *Post) AttachTags(id int, tags *[]base.Tag) (p *Post, err error) {
+	p = &Post{}
+	p.ID = uint(id)
+	if err := connection.Model(&p).Association("Tags").Append(tags); err != nil {
+		return nil, err
+	}
+
+	p, err = t.Get(uint(id))
+	if err != nil {
+		return nil, err
+	}
+	return p, nil
+}
+
+// DetachTags detach tags from corresponding post
+func (t *Post) DetachTags(id int, tags *[]base.Tag) (*Post, error) {
+
+	p, err := t.Get(uint(id))
+	if err != nil {
+		return nil, err
+	}
+
+	if err := connection.Model(&p).Association("Tags").Delete(tags); err != nil {
+		return nil, err
+	}
+	return p, nil
 }
 
 func appendImages(post *Post, images []string) error {
