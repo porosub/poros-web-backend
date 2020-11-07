@@ -109,13 +109,11 @@ func (t *Post) Delete(id uint) error {
 		return err
 	}
 
-	if err = t.deletePostImages(p); err != nil {
-		return err
-	}
-
 	if err = connection.Delete(&Post{}, id).Error; err != nil {
 		return err
 	}
+	t.deletePostImages(p)
+
 	return nil
 }
 
