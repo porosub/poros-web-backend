@@ -4,12 +4,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/divisi-developer-poros/poros-web-backend/config"
 	"github.com/divisi-developer-poros/poros-web-backend/models/post"
 	"github.com/divisi-developer-poros/poros-web-backend/models/posttype"
-	"github.com/divisi-developer-poros/poros-web-backend/models/user"
 	"github.com/divisi-developer-poros/poros-web-backend/utils/response"
-	"github.com/divisi-developer-poros/poros-web-backend/utils/storage"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 )
@@ -28,12 +25,8 @@ type PostHandlerInterface interface {
 	Delete(c *gin.Context)
 }
 
-func (h *PostHandler) sendSuccess(c *gin.Context, message string, data interface{}) {
-	h.Res.CustomResponse(c, "Content-Type", "application/json", "success", message, http.StatusOK, data)
-}
-
-func (h *PostHandler) sendCreated(c *gin.Context, message string, data interface{}) {
-	h.Res.CustomResponse(c, "Content-Type", "application/json", "success", message, http.StatusCreated, data)
+func (h *PostHandler) sendSuccess(c *gin.Context, data interface{}) {
+	h.Res.CustomResponse(c, "Content-Type", "application/json", "success", "", http.StatusOK, data)
 }
 
 func (h *PostHandler) sendError(c *gin.Context, status int, message string) {
@@ -46,7 +39,7 @@ func (h *PostHandler) List(c *gin.Context) {
 	if err != nil {
 		h.sendError(c, http.StatusInternalServerError, err.Error())
 	}
-	h.sendSuccess(c, "", data)
+	h.sendSuccess(c, data)
 }
 
 // Get ... Get single post
@@ -62,90 +55,90 @@ func (h *PostHandler) Get(c *gin.Context) {
 		h.sendError(c, http.StatusNotFound, err.Error())
 		return
 	}
-	h.sendSuccess(c, "", data)
+	h.sendSuccess(c, data)
 	return
 }
 
 // Create ... Create single post
 func (h *PostHandler) Create(c *gin.Context) {
+	// Bind Post Data
 	var p post.Post
 	if err := c.ShouldBindWith(&p, binding.FormMultipart); err != nil {
 		h.sendError(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	idInt, _ := strconv.Atoi(c.PostForm("user_id"))
-	if err := user.Get(&user.User{}, idInt); err != nil {
+	// Get User ID
+	idInt, err := strconv.Atoi(c.PostForm("user_id"))
+	if err != nil {
 		h.sendError(c, http.StatusBadRequest, err.Error())
 		return
 	}
 	p.UserID = uint(idInt)
 
-	filenames, err := storage.StoreFiles(c, "images", config.AssetPostsImages)
+	// Get images data
+	form, err := c.MultipartForm()
 	if err != nil {
 		h.sendError(c, http.StatusBadRequest, err.Error())
 		return
 	}
+	imagesBlob := form.File["images"]
 
-	h.PostModel.LinkImagesName(&p, *filenames)
-
-	if _, err = h.PostModel.Create(&p); err != nil {
+	// Store images and store data to DB
+	if _, err = h.PostModel.Create(&p, imagesBlob); err != nil {
 		h.sendError(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	h.sendSuccess(c, "", p)
-}
-
-// Update ... update single post
-func (h *PostHandler) Update(c *gin.Context) {
-	// Mengambil post lama
-	id, err := strconv.Atoi(c.Params.ByName("id"))
-	if err != nil {
-		h.sendError(c, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	p, err := h.PostModel.Get(uint(id))
+	// Get newly created data
+	data, err := h.PostModel.Get(p.ID)
 	if err != nil {
 		h.sendError(c, http.StatusNotFound, err.Error())
 		return
 	}
 
-	// Mengambil post baru
+	h.sendSuccess(c, data)
+}
+
+// Update ... update single post
+func (h *PostHandler) Update(c *gin.Context) {
+	// Get User ID
+	userIDInt, err := strconv.Atoi(c.Params.ByName("id"))
+	if err != nil {
+		h.sendError(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	// Bind Post Data
+	var p post.Post
 	if err := c.ShouldBindWith(&p, binding.FormMultipart); err != nil {
 		h.sendError(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	idInt, _ := strconv.Atoi(c.PostForm("user_id"))
-	if err := user.Get(&user.User{}, idInt); err != nil {
+	// Get Body User ID
+	idInt, err := strconv.Atoi(c.PostForm("user_id"))
+	if err != nil {
 		h.sendError(c, http.StatusBadRequest, err.Error())
 		return
 	}
 	p.UserID = uint(idInt)
 
-	// Hapus gambar lama
-	if err := h.PostModel.DeletePostImages(p); err != nil {
-		h.sendError(c, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	// Menyimpan gambar baru
-	filenames, err := storage.StoreFiles(c, "images", config.AssetPostsImages)
+	// Get images data
+	form, err := c.MultipartForm()
 	if err != nil {
 		h.sendError(c, http.StatusBadRequest, err.Error())
 		return
 	}
-	h.PostModel.LinkImagesName(p, *filenames)
+	imagesBlob := form.File["images"]
 
-	// Mengubah post di db
-	if _, err := h.PostModel.Update(p); err != nil {
-		h.sendError(c, http.StatusBadRequest, err.Error())
+	// Update post
+	if _, err = h.PostModel.Update(&p, userIDInt, imagesBlob); err != nil {
+		h.sendError(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	h.sendSuccess(c, "", p)
+	h.sendSuccess(c, p)
 }
 
 // Delete ... Delete single post
@@ -161,6 +154,6 @@ func (h *PostHandler) Delete(c *gin.Context) {
 		return
 	}
 
-	h.sendSuccess(c, "", nil)
+	h.sendSuccess(c, nil)
 	return
 }

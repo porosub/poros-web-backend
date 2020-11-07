@@ -84,6 +84,20 @@ func StoreFileBlob(fileBlob *multipart.FileHeader, location string) (string, err
 	return filename, nil
 }
 
+// StoreFilesBlob menyimpan beberapa file blob yang terupload ke lokasi yang dituju
+func StoreFilesBlob(filesBlob []*multipart.FileHeader, location string) ([]string, error) {
+	filenames := make([]string, 0, 4)
+
+	for _, file := range filesBlob {
+		filename, err := store(file, location)
+		if err != nil {
+			return nil, err
+		}
+		filenames = append(filenames, filename)
+	}
+	return filenames, nil
+}
+
 // RemoveFile menghapus file yang dituju
 func RemoveFile(path string) error {
 	if err := os.Remove(path); err != nil {

@@ -13,7 +13,7 @@ type User struct {
 	Password   string            `gorm:"not null" json:"password" form:"password" binding:"required"`
 	FullName   string            `gorm:"not null" json:"full_name" form:"full_name" binding:"required"`
 	UserTypeID int               `json:"user_type_id" form:"user_type_id" binding:"required"`
-	UserType   usertype.UserType `gorm:"foreignKey:UserTypeID" binding:"-" json:"user_type"`
+	UserType   usertype.UserType `json:"user_type" binding:"-" `
 }
 
 // TableName ... User Table Name in DB

@@ -16,7 +16,7 @@ type Post struct {
 	User       user.User             `json:"user" gorm:"constraint:OnDelete:CASCADE; foreignKey:UserID;" binding:"-"`
 	PostTypeID uint                  `json:"post_type_id" form:"post_type_id" xml:"post_type_id" gorm:"column:post_type_id" binding:"required"`
 	PostType   posttype.PostType     `json:"post_type" binding:"-"`
-	PostImage  []postimage.PostImage `json:"post_image" gorm:"foreignKey:id; constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	PostImages []postimage.PostImage `json:"post_images" gorm:"foreignKey:id; constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	Tags       []Tag                 `json:"tags" gorm:"many2many:posts_tags;"`
 }
 

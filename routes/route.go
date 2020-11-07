@@ -51,7 +51,7 @@ func Start() {
 	// user routes
 	r.GET("/users", TokenMiddleware.AuthorizeToken, UserHandlers.GetAll)
 	r.GET("/users/:id", TokenMiddleware.AuthorizeToken, UserHandlers.Get)
-	r.POST("/users", UserHandlers.Create)
+	r.POST("/users", TokenMiddleware.AuthorizeToken, UserHandlers.Create)
 	r.PUT("/users/:id", TokenMiddleware.AuthorizeToken, UserHandlers.Update)
 	r.DELETE("/users/:id", TokenMiddleware.AuthorizeToken, UserHandlers.Delete)
 
