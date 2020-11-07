@@ -16,14 +16,15 @@ import (
 )
 
 var (
-	TestingHandlers  test.Cobs
-	TagHandlers      tag.HandlerTag
-	TokenMiddleware  middleware.TokenMiddleware
-	AuthHandlers     auth.AuthHandlers
-	PostHandler      post.PostHandler
-	PostTypeHandler  posttype.PostTypeHandler
-	UserHandlers     userController.UserHandler
-	UserTypeHandlers UserTypeController.UserTypeHandler
+	TestingHandlers    test.Cobs
+	TagHandlers        tag.HandlerTag
+	TokenMiddleware    middleware.TokenMiddleware
+	MetadataMiddleware middleware.MetadataMiddleware
+	AuthHandlers       auth.AuthHandlers
+	PostHandler        post.PostHandler
+	PostTypeHandler    posttype.PostTypeHandler
+	UserHandlers       userController.UserHandler
+	UserTypeHandlers   UserTypeController.UserTypeHandler
 )
 
 type Test struct {
@@ -34,6 +35,8 @@ type Test struct {
 // Start inisialisasi route yang digunakan
 func Start() {
 	r := gin.Default()
+
+	r.Use(MetadataMiddleware.Handler)
 
 	r.GET("/", func(c *gin.Context) {
 		c.String(http.StatusOK, "Hello World!")

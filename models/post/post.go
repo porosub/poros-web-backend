@@ -28,7 +28,6 @@ var (
 // List ... Get all posts from DB
 func (t *Post) List() (*[]Post, error) {
 	var posts []Post
-	println(posts)
 	if err := connection.Preload("User").Preload("PostType").Preload("PostImages").Preload("Tags").Find(&posts).Error; err != nil {
 		return nil, err
 	}

@@ -10,6 +10,6 @@ type Post struct {
 }
 
 // TableName ... Post Table Name in DB
-func (t *Post) TableName() string {
+func (p *Post) TableName() string {
 	return "posts"
 }

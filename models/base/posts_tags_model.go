@@ -26,3 +26,18 @@ type Tag struct {
 	Name  string `gorm:"not null" json:"name"`
 	Posts []Post `gorm:"many2many:posts_tags;" json:"posts"`
 }
+
+// LocalizedField ... Localized all field to corresponded host
+func (p *Post) LocalizedField() {
+	for id := range p.PostImages {
+		p.PostImages[id].LocalizedField()
+	}
+	p.User.LocalizedField()
+}
+
+// LocalizedField ... Localized all field to corresponded host
+func (t *Tag) LocalizedField() {
+	for id := range t.Posts {
+		t.Posts[id].LocalizedField()
+	}
+}

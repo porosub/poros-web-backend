@@ -1,7 +1,6 @@
 package post
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -41,6 +40,9 @@ func (h *PostHandler) List(c *gin.Context) {
 	if err != nil {
 		h.sendError(c, http.StatusInternalServerError, err.Error())
 	}
+	for id := range *data {
+		(*data)[id].LocalizedField()
+	}
 	h.sendSuccess(c, data)
 }
 
@@ -57,6 +59,7 @@ func (h *PostHandler) Get(c *gin.Context) {
 		h.sendError(c, http.StatusNotFound, err.Error())
 		return
 	}
+	data.LocalizedField()
 	h.sendSuccess(c, data)
 	return
 }
@@ -99,6 +102,7 @@ func (h *PostHandler) Create(c *gin.Context) {
 		return
 	}
 
+	data.LocalizedField()
 	h.sendSuccess(c, data)
 }
 
@@ -140,6 +144,7 @@ func (h *PostHandler) Update(c *gin.Context) {
 		return
 	}
 
+	p.LocalizedField()
 	h.sendSuccess(c, p)
 }
 
@@ -168,8 +173,6 @@ func (h *PostHandler) AttachTags(c *gin.Context) {
 		return
 	}
 
-	fmt.Printf("Your post id %v\n", id)
-
 	var t []base.Tag
 	if err := c.ShouldBindJSON(&t); err != nil {
 		h.sendError(c, http.StatusBadRequest, err.Error())
@@ -181,6 +184,7 @@ func (h *PostHandler) AttachTags(c *gin.Context) {
 		h.sendError(c, http.StatusInternalServerError, err.Error())
 		return
 	}
+	p.LocalizedField()
 	h.sendSuccess(c, p)
 }
 
@@ -203,5 +207,7 @@ func (h *PostHandler) DetachTags(c *gin.Context) {
 		h.sendError(c, http.StatusInternalServerError, err.Error())
 		return
 	}
+
+	p.LocalizedField()
 	h.sendSuccess(c, p)
 }

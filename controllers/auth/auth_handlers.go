@@ -1,12 +1,14 @@
 package auth
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/divisi-developer-poros/poros-web-backend/models/token"
 	"github.com/divisi-developer-poros/poros-web-backend/models/user"
+	"github.com/divisi-developer-poros/poros-web-backend/utils/host"
 	"github.com/divisi-developer-poros/poros-web-backend/utils/response"
 	"github.com/gin-gonic/gin"
 )
@@ -40,6 +42,7 @@ func (a *AuthHandlers) sendError(c *gin.Context, status int, message string) {
 
 // Login ... user login
 func (a *AuthHandlers) Login(c *gin.Context) {
+	fmt.Printf("Host: %v\n", host.Host)
 	var loginForm LoginForm
 	var u user.User
 	if err := c.ShouldBindJSON(&loginForm); err != nil {
@@ -59,6 +62,7 @@ func (a *AuthHandlers) Login(c *gin.Context) {
 	}
 
 	u.Password = ""
+	u.LocalizedField()
 	a.sendSuccess(c, "", gin.H{
 		"user":         u,
 		"access_token": accessToken,

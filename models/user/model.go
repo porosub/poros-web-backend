@@ -1,7 +1,9 @@
 package user
 
 import (
+	"github.com/divisi-developer-poros/poros-web-backend/config"
 	"github.com/divisi-developer-poros/poros-web-backend/models/usertype"
+	"github.com/divisi-developer-poros/poros-web-backend/utils/host"
 	_ "github.com/go-playground/validator/v10" // Validator
 )
 
@@ -16,7 +18,14 @@ type User struct {
 	UserType   usertype.UserType `json:"user_type" binding:"-" `
 }
 
+// LocalizedField ... Localized all field to corresponded host
+func (u *User) LocalizedField() {
+	if u.Image != "" {
+		u.Image = host.GetURL() + config.AssetUsersImages + u.Image
+	}
+}
+
 // TableName ... User Table Name in DB
-func (b *User) TableName() string {
+func (u *User) TableName() string {
 	return "users"
 }

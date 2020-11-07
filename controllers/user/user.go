@@ -25,6 +25,10 @@ func (usr *UserHandler) GetAll(c *gin.Context) {
 		return
 	}
 
+	for id := range users {
+		users[id].LocalizedField()
+	}
+
 	usr.responseSuccess(c, users)
 }
 
@@ -43,6 +47,7 @@ func (usr *UserHandler) Get(c *gin.Context) {
 		usr.responseError(c, http.StatusInternalServerError, err.Error())
 		return
 	}
+	user.LocalizedField()
 	usr.responseSuccess(c, user)
 }
 
@@ -67,6 +72,7 @@ func (usr *UserHandler) Create(c *gin.Context) {
 		usr.responseError(c, http.StatusInternalServerError, err.Error())
 		return
 	}
+	u.LocalizedField()
 	usr.responseSuccess(c, u)
 }
 
@@ -95,6 +101,7 @@ func (usr *UserHandler) Update(c *gin.Context) {
 		return
 	}
 
+	u.LocalizedField()
 	usr.responseSuccess(c, u)
 }
 
