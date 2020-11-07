@@ -4,6 +4,7 @@ import (
 	"github.com/divisi-developer-poros/poros-web-backend/models/posttype"
 )
 
+// PostTypeSeeder ... Post Type Seeder
 func PostTypeSeeder() {
 	var count int64
 	if connection.Model(&posttype.PostType{}).Count(&count); count == 0 {

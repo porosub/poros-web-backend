@@ -9,7 +9,7 @@ import (
 	"github.com/divisi-developer-poros/poros-web-backend/controllers/tag"
 	test "github.com/divisi-developer-poros/poros-web-backend/controllers/testing"
 	userController "github.com/divisi-developer-poros/poros-web-backend/controllers/user"
-	UserTypeController "github.com/divisi-developer-poros/poros-web-backend/controllers/user_type"
+	UserTypeController "github.com/divisi-developer-poros/poros-web-backend/controllers/usertype"
 	"github.com/divisi-developer-poros/poros-web-backend/middleware"
 	"github.com/divisi-developer-poros/poros-web-backend/utils/storage"
 	"github.com/gin-gonic/gin"

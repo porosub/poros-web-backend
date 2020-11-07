@@ -5,6 +5,7 @@ import (
 	"github.com/divisi-developer-poros/poros-web-backend/models/tags"
 )
 
+// TagSeeder ... Tag seeder
 func TagSeeder() {
 	var count int64
 	if connection.Model(&tags.Tag{}).Count(&count); count == 0 {

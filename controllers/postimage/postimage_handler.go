@@ -9,11 +9,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// PostImageHandler ... Post image handler struct declaration
 type PostImageHandler struct {
 	PostImageModel postimage.PostImage
 	Res            response.Response
 }
 
+// PostImageHandlerInterface ... Post image handler struct interface
 type PostImageHandlerInterface interface {
 	Get(c *gin.Context)
 	Update(c *gin.Context)
@@ -28,6 +30,7 @@ func (h *PostImageHandler) sendError(c *gin.Context, status int, message string)
 	h.Res.CustomResponse(c, "Content-Type", "application/json", "error", message, status, nil)
 }
 
+// Get ... Get single post image
 func (h *PostImageHandler) Get(c *gin.Context) {
 	id, err := strconv.Atoi(c.Params.ByName("id"))
 	if err != nil {
@@ -44,6 +47,7 @@ func (h *PostImageHandler) Get(c *gin.Context) {
 	h.sendSuccess(c, "", data)
 }
 
+// Update ... Update single post image
 func (h *PostImageHandler) Update(c *gin.Context) {
 	id, err := strconv.Atoi(c.Params.ByName("id"))
 	if err != nil {
@@ -53,7 +57,7 @@ func (h *PostImageHandler) Update(c *gin.Context) {
 		return
 	}
 
-	var data PostImage.PostImage
+	var data postimage.PostImage
 	if err := c.ShouldBindJSON(&data); err != nil {
 		h.Res.CustomResponse(c, "Content-Type",
 			"application/json", "error",
@@ -76,6 +80,7 @@ func (h *PostImageHandler) Update(c *gin.Context) {
 	return
 }
 
+// Delete ... delete post image
 func (h *PostImageHandler) Delete(c *gin.Context) {
 	id, err := strconv.Atoi(c.Params.ByName("id"))
 	if err != nil {

@@ -1,4 +1,4 @@
-package user_type
+package usertype
 
 import (
 	"github.com/divisi-developer-poros/poros-web-backend/config"
@@ -9,29 +9,33 @@ var (
 	connection = mysql.MysqlConn()
 )
 
-func GetAll(userType *[]User_Type) (err error) {
+// GetAll ... Get All User Types from DB
+func GetAll(userType *[]UserType) (err error) {
 	if err := connection.Find(userType).Error; err != nil {
 		return err
 	}
 	return err
 }
 
-func Get(userType *User_Type, id int) (err error) {
+// Get ... Get single user type from DB
+func Get(userType *UserType, id int) (err error) {
 	if err = connection.Where("id=?", id).First(userType).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
-func Create(userType *User_Type) (err error) {
+// Create ... Create single user type to DB
+func Create(userType *UserType) (err error) {
 	if err := connection.Create(userType).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
-func Update(updatedUserType *User_Type, id int) (err error) {
-	var existedUserType User_Type
+// Update ... Update single user type from DB
+func Update(updatedUserType *UserType, id int) (err error) {
+	var existedUserType UserType
 	connection.Where("id=?", id).First(&existedUserType)
 	existedUserType.Name = updatedUserType.Name
 
@@ -41,8 +45,8 @@ func Update(updatedUserType *User_Type, id int) (err error) {
 	return nil
 }
 
-
-func Delete (userType *User_Type, id int) (err error) {
+// Delete ... Delete single user type from DB
+func Delete(userType *UserType, id int) (err error) {
 	if err := connection.Unscoped().Where("id=?", id).Delete(&userType).Error; err != nil {
 		return err
 	}

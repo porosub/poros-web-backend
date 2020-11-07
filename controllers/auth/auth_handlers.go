@@ -11,17 +11,20 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// AuthHandlers ... Struct for Auth Handler
 type AuthHandlers struct {
 	Token token.JWTToken
 	Res   response.Response
 }
 
+// AuthHandlersInterface ... Interface for Auth Handler
 type AuthHandlersInterface interface {
 	Login(c *gin.Context)
 	Me(c *gin.Context)
 	Logout(c *gin.Context)
 }
 
+// LoginForm ... Declare struct for storing request
 type LoginForm struct {
 	Username string `form:"username" json:"username" xml:"username" binding:"required"`
 	Password string `form:"password" json:"password" xml:"password" binding:"required"`
@@ -35,6 +38,7 @@ func (a *AuthHandlers) sendError(c *gin.Context, status int, message string) {
 	a.Res.CustomResponse(c, "Content-Type", "application/json", "error", message, status, nil)
 }
 
+// Login ... user login
 func (a *AuthHandlers) Login(c *gin.Context) {
 	var loginForm LoginForm
 	var u user.User
@@ -48,7 +52,7 @@ func (a *AuthHandlers) Login(c *gin.Context) {
 		return
 	}
 
-	accessToken, err := a.Token.GenerateToken(u.Username, u.User_type_id)
+	accessToken, err := a.Token.GenerateToken(u.Username, u.UserTypeID)
 	if err != nil {
 		a.sendError(c, http.StatusInternalServerError, err.Error())
 		return
@@ -62,6 +66,7 @@ func (a *AuthHandlers) Login(c *gin.Context) {
 
 }
 
+// Logout ... user logout
 func (a *AuthHandlers) Logout(c *gin.Context) {
 	accessToken := c.GetHeader("Authorization")
 	if len(accessToken) == 0 {
@@ -80,18 +85,19 @@ func (a *AuthHandlers) Logout(c *gin.Context) {
 		a.sendError(c, 401, "Unauthorized.")
 		return
 	}
-	tokenId, ok := claims["id"].(string)
+	tokenID, ok := claims["id"].(string)
 	if !ok {
 		a.sendError(c, 401, "Unauthorized.")
 		return
 	}
-	if err := jwtModel.DeleteToken(tokenId); err != nil {
+	if err := jwtModel.DeleteToken(tokenID); err != nil {
 		a.sendError(c, 401, "Unauthorized.")
 		return
 	}
 	a.sendSuccess(c, "Logged out.", nil)
 }
 
+// Me ... Show User Data
 func (a *AuthHandlers) Me(c *gin.Context) {
 	var authUser user.User
 	if err := user.GetByUsername(&authUser, c.Writer.Header().Get("User")); err != nil {

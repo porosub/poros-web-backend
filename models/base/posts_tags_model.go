@@ -7,6 +7,7 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
+// Post ... Post model declaration
 type Post struct {
 	gorm.Model
 	Title      string                `json:"title" form:"title" xml:"title" binding:"required"`
@@ -19,6 +20,7 @@ type Post struct {
 	Tags       []Tag                 `json:"tags" gorm:"many2many:posts_tags;"`
 }
 
+// Tag ... Tag model declaration
 type Tag struct {
 	ID    int    `gorm:"primaryKey" json:"id"`
 	Name  string `gorm:"not null" json:"name"`

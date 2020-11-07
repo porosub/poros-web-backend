@@ -1,19 +1,20 @@
 package seeder
 
 import (
-	"github.com/divisi-developer-poros/poros-web-backend/models/user_type"
+	"github.com/divisi-developer-poros/poros-web-backend/models/usertype"
 )
 
+// UserTypeSeeder ... User type seeder
 func UserTypeSeeder() {
 	var count int64
-	if connection.Model(&user_type.User_Type{}).Count(&count); count == 0 {
-		connection.Create(&user_type.User_Type{
+	if connection.Model(&usertype.UserType{}).Count(&count); count == 0 {
+		connection.Create(&usertype.UserType{
 			Name: "Root",
 		})
-		connection.Create(&user_type.User_Type{
+		connection.Create(&usertype.UserType{
 			Name: "Admin",
 		})
-		connection.Create(&user_type.User_Type{
+		connection.Create(&usertype.UserType{
 			Name: "Member",
 		})
 		println("User Type Seeder Executed Successfully")

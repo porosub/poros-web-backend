@@ -1,18 +1,21 @@
 package tag
 
 import (
+	"net/http"
+	"strconv"
+
 	"github.com/divisi-developer-poros/poros-web-backend/models/tags"
 	"github.com/divisi-developer-poros/poros-web-backend/utils/response"
 	"github.com/gin-gonic/gin"
-	"net/http"
-	"strconv"
 )
 
+// HandlerTag ... Tag handler struct declaration
 type HandlerTag struct {
 	TagModel tags.Tag
 	Res      response.Response
 }
 
+// HandlerTagInterface ... Tag handler interface declaration
 type HandlerTagInterface interface {
 	GetTags(c *gin.Context)
 	GetTagByID(c *gin.Context)
@@ -21,6 +24,7 @@ type HandlerTagInterface interface {
 	DeleteTag(c *gin.Context)
 }
 
+// GetTags ... Get all tags
 func (ht *HandlerTag) GetTags(c *gin.Context) {
 	data, err := ht.TagModel.FetchTags()
 	if err != nil {
@@ -35,6 +39,7 @@ func (ht *HandlerTag) GetTags(c *gin.Context) {
 	return
 }
 
+// GetTagByID ... Get single tag
 func (ht *HandlerTag) GetTagByID(c *gin.Context) {
 	id, err := strconv.Atoi(c.Params.ByName("id"))
 	if err != nil {
@@ -58,6 +63,7 @@ func (ht *HandlerTag) GetTagByID(c *gin.Context) {
 	return
 }
 
+// CreateTag ... Create single tag
 func (ht *HandlerTag) CreateTag(c *gin.Context) {
 	var newTag tags.Tag
 	if err := c.ShouldBindJSON(&newTag); err != nil {
@@ -67,7 +73,7 @@ func (ht *HandlerTag) CreateTag(c *gin.Context) {
 		return
 	}
 
-	result, err := ht.TagModel.CreateTag(&newTag);
+	result, err := ht.TagModel.CreateTag(&newTag)
 	if err != nil {
 		ht.Res.CustomResponse(c, "Content-Type",
 			"application/json", "error",
@@ -77,10 +83,11 @@ func (ht *HandlerTag) CreateTag(c *gin.Context) {
 
 	ht.Res.CustomResponse(c, "Content-Type",
 		"application/json", "success",
-		"created successfully", http.StatusOK, result)
+		"", http.StatusOK, result)
 	return
 }
 
+// UpdateTagByID ... Update single tag
 func (ht *HandlerTag) UpdateTagByID(c *gin.Context) {
 	id, err := strconv.Atoi(c.Params.ByName("id"))
 	if err != nil {
@@ -109,10 +116,11 @@ func (ht *HandlerTag) UpdateTagByID(c *gin.Context) {
 
 	ht.Res.CustomResponse(c, "Content-Type",
 		"application/json", "success",
-		"updated successfully", http.StatusOK, result)
+		"", http.StatusOK, result)
 	return
 }
 
+// DeleteTag ... Delete single tag
 func (ht *HandlerTag) DeleteTag(c *gin.Context) {
 	id, err := strconv.Atoi(c.Params.ByName("id"))
 	if err != nil {
@@ -131,6 +139,6 @@ func (ht *HandlerTag) DeleteTag(c *gin.Context) {
 
 	ht.Res.CustomResponse(c, "Content-Type",
 		"application/json", "success",
-		"deleted successfully", http.StatusOK, nil)
+		"", http.StatusOK, nil)
 	return
 }

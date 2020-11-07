@@ -40,6 +40,7 @@ func (h *PostHandler) sendError(c *gin.Context, status int, message string) {
 	h.Res.CustomResponse(c, "Content-Type", "application/json", "error", message, status, nil)
 }
 
+// List ... Get all posts
 func (h *PostHandler) List(c *gin.Context) {
 	data, err := h.PostModel.List()
 	if err != nil {
@@ -48,6 +49,7 @@ func (h *PostHandler) List(c *gin.Context) {
 	h.sendSuccess(c, "", data)
 }
 
+// Get ... Get single post
 func (h *PostHandler) Get(c *gin.Context) {
 	id, err := strconv.Atoi(c.Params.ByName("id"))
 	if err != nil {
@@ -64,6 +66,7 @@ func (h *PostHandler) Get(c *gin.Context) {
 	return
 }
 
+// Create ... Create single post
 func (h *PostHandler) Create(c *gin.Context) {
 	var p post.Post
 	if err := c.ShouldBindWith(&p, binding.FormMultipart); err != nil {
@@ -94,6 +97,7 @@ func (h *PostHandler) Create(c *gin.Context) {
 	h.sendSuccess(c, "", p)
 }
 
+// Update ... update single post
 func (h *PostHandler) Update(c *gin.Context) {
 	// Mengambil post lama
 	id, err := strconv.Atoi(c.Params.ByName("id"))
@@ -144,6 +148,7 @@ func (h *PostHandler) Update(c *gin.Context) {
 	h.sendSuccess(c, "", p)
 }
 
+// Delete ... Delete single post
 func (h *PostHandler) Delete(c *gin.Context) {
 	id, err := strconv.Atoi(c.Params.ByName("id"))
 	if err != nil {

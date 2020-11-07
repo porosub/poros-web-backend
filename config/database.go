@@ -19,11 +19,13 @@ type DBConfig struct {
 	Password string
 }
 
+// DBMySQL ... Referensi database yang digunakan
 type DBMySQL struct {
 	// DB ... Referensi database yang digunakan
 	DB gorm.DB
 }
 
+// DBMySQLInterface ... Deklarasi interfaces
 type DBMySQLInterface interface {
 	BuildDBConfig() *DBConfig
 	DbURL(dbConfig *DBConfig) string
@@ -55,10 +57,10 @@ func (dbsql *DBMySQL) DbURL(dbConfig *DBConfig) string {
 		dbConfig.Password,
 		dbConfig.Host,
 		dbConfig.Port,
-		dbConfig.DBName, )
+		dbConfig.DBName)
 }
 
-
+// MysqlConn ... Mysql Connection
 func (dbsql *DBMySQL) MysqlConn() *gorm.DB {
 	result, err := gorm.Open(mysql.Open(dbsql.DbURL(dbsql.BuildDBConfig())), &gorm.Config{})
 	if err != nil {

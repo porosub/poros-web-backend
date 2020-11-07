@@ -7,6 +7,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// PostInterface ... Post interface declaration
 type PostInterface interface {
 	List() (*[]Post, error)
 	Get(id int) (Post, error)
@@ -22,6 +23,7 @@ var (
 	connection = mysql.MysqlConn()
 )
 
+// List ... Get all posts from DB
 func (t *Post) List() (*[]Post, error) {
 	var posts []Post
 	println(posts)
@@ -38,15 +40,17 @@ func (t *Post) List() (*[]Post, error) {
 	return &cleanPosts, nil
 }
 
+// Get ... Get single post from DB
 func (t *Post) Get(id uint) (*Post, error) {
 	var post Post
-	if err := connection.Where("id = ?", id).Preload("User").Preload("User.User_Type").Preload("PostType").Preload("PostImage").First(&post).Error; err != nil {
+	if err := connection.Where("id = ?", id).Preload("User").Preload("User.UserType").Preload("PostType").Preload("PostImage").First(&post).Error; err != nil {
 		return nil, err
 	}
 	post.User.Password = ""
 	return &post, nil
 }
 
+// Create ... Create single post to DB
 func (t *Post) Create(post *Post) (*Post, error) {
 	if err := connection.Create(post).Error; err != nil {
 		return nil, err
@@ -54,6 +58,7 @@ func (t *Post) Create(post *Post) (*Post, error) {
 	return post, nil
 }
 
+// Update ... Update single post from DB
 func (t *Post) Update(post *Post) (*Post, error) {
 	if err := connection.Session(&gorm.Session{FullSaveAssociations: true}).Omit("User", "PostType").Save(post).Error; err != nil {
 		return nil, err
@@ -61,6 +66,7 @@ func (t *Post) Update(post *Post) (*Post, error) {
 	return post, nil
 }
 
+// Delete ... Delete single post from DB
 func (t *Post) Delete(id uint) error {
 	p, err := t.Get(id)
 	if err != nil {
@@ -88,6 +94,7 @@ func (t *Post) LinkImagesName(post *Post, images []string) error {
 	return nil
 }
 
+// DeletePostImages ... Delete post images
 func (t *Post) DeletePostImages(post *Post) error {
 	for _, postImage := range post.PostImage {
 		path := config.AssetPostsImages + postImage.Image

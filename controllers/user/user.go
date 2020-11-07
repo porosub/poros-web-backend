@@ -1,143 +1,125 @@
 package user
 
 import (
-	"github.com/divisi-developer-poros/poros-web-backend/config"
+	"net/http"
+	"strconv"
+
 	userModel "github.com/divisi-developer-poros/poros-web-backend/models/user"
-	"github.com/divisi-developer-poros/poros-web-backend/utils/random"
 	r "github.com/divisi-developer-poros/poros-web-backend/utils/response"
 	"github.com/gin-gonic/gin"
-	"net/http"
-	"os"
-	"strconv"
-	"strings"
+	"github.com/gin-gonic/gin/binding"
 )
 
+// UserHandler ... Struct for User Handler
 type UserHandler struct {
-	Model	userModel.User
-	Res     r.Response
+	Model userModel.User
+	Res   r.Response
 }
 
+// GetAll ... Get all users
 func (usr *UserHandler) GetAll(c *gin.Context) {
 	var users []userModel.User
 
 	if err := userModel.GetAll(&users); err != nil {
-		usr.Res.CustomResponse(c, "Content-Type", "application/json", "error", err.Error(), http.StatusInternalServerError, nil)
-	} else {
-		usr.Res.CustomResponse(c, "Content-Type", "application/json", "success", "null", http.StatusOK, users)
+		usr.responseError(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
+	usr.responseSuccess(c, users)
 }
 
+// Get ... Get single user
 func (usr *UserHandler) Get(c *gin.Context) {
 	id := c.Params.ByName("id")
 
-	if numId, error := strconv.Atoi(id); error != nil {
-		usr.Res.CustomResponse(c, "Content-Type", "application/json", "error", "ID not valid", http.StatusBadRequest, nil)
-	} else {
-		var user userModel.User
-		if err := userModel.Get(&user, numId); err != nil {
-			usr.Res.CustomResponse(c, "Content-Type", "application/json", "error", err.Error(), http.StatusInternalServerError, nil)
-		} else {
-			usr.Res.CustomResponse(c, "Content-Type", "application/json", "success", "null", http.StatusOK, user)
-			return
-		}
+	numID, err := strconv.Atoi(id)
+	if err != nil {
+		usr.responseError(c, http.StatusBadRequest, "ID not valid!")
+		return
 	}
+
+	var user userModel.User
+	if err := userModel.Get(&user, numID); err != nil {
+		usr.responseError(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+	usr.responseSuccess(c, user)
 }
 
+// Create ... Create single user
 func (usr *UserHandler) Create(c *gin.Context) {
-	if isOk, user := _checkUserBinding(c); isOk != true {
-		usr.Res.CustomResponse(c, "Content-Type", "application/json", "error", "error when binding user", http.StatusBadRequest, nil)
-	} else {
-		if image, errImg := c.FormFile("image"); errImg != nil {
-			usr.Res.CustomResponse(c, "Content-Type", "application/json", "error", errImg.Error(), http.StatusBadRequest, nil)
-		} else {
-			contentType := strings.Split(image.Header.Get("Content-Type"), "/")
-			filename := random.RandomString(32) + "." + contentType[1]
-			imageUrl := config.AssetUsersImages + filename
-			if err := c.SaveUploadedFile(image, imageUrl); err != nil {
-				usr.Res.CustomResponse(c, "Content-Type", "application/json", "error", err.Error(), http.StatusInternalServerError, nil)
-			} else {
-				user.Image = imageUrl
-				if err := userModel.Create(&user); err != nil {
-					usr.Res.CustomResponse(c, "Content-Type", "application/json", "error", err.Error(), http.StatusInternalServerError, nil)
-				} else {
-					usr.Res.CustomResponse(c, "Content-Type", "application/json", "success", "user created", http.StatusOK, user)
-					return
-				}
-			}
-		}
+	// Bind User Data
+	var u userModel.User
+	if err := c.ShouldBindWith(&u, binding.FormMultipart); err != nil {
+		usr.responseError(c, http.StatusBadRequest, err.Error())
+		return
 	}
+
+	// Get image data
+	imageBlob, err := c.FormFile("image_blob")
+	if err != nil {
+		usr.responseError(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	// Store image and store data to DB
+	if err := userModel.Create(&u, imageBlob); err != nil {
+		usr.responseError(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+	usr.responseSuccess(c, u)
 }
 
+// Update ... Update single user
 func (usr *UserHandler) Update(c *gin.Context) {
+	// Get User ID
 	id := c.Params.ByName("id")
-
-	if isOk, user := _checkUserBinding(c); isOk != true {
-		usr.Res.CustomResponse(c, "Content-Type", "application/json", "error", "error when binding user", http.StatusBadRequest, nil)
-	} else {
-		if numId, error := strconv.Atoi(id); error != nil {
-			usr.Res.CustomResponse(c, "Content-Type", "application/json", "error", "ID not valid", http.StatusBadRequest, nil)
-		} else {
-			var existedUser userModel.User
-			if errUserExist := userModel.Get(&existedUser, numId); errUserExist != nil {
-				usr.Res.CustomResponse(c, "Content-Type", "application/json", "error", errUserExist.Error(), http.StatusInternalServerError, nil)
-			} else {
-				if image, err := c.FormFile("image"); err != nil {
-					user.Image = existedUser.Image
-				} else {
-					contentType := strings.Split(image.Header.Get("Content-Type"), "/")
-					filename := random.RandomString(32) + "." + contentType[1]
-					imageUrl := config.AssetUsersImages + filename
-					if err := c.SaveUploadedFile(image, imageUrl); err != nil {
-						usr.Res.CustomResponse(c, "Content-Type", "application/json", "error", err.Error(), http.StatusInternalServerError, nil)
-					} else {
-						user.Image = imageUrl
-						os.Remove(existedUser.Image)
-					}
-				}
-				if err := userModel.Update(&user, numId); err != nil {
-					usr.Res.CustomResponse(c, "Content-Type", "application/json", "error", err.Error(), http.StatusInternalServerError, nil)
-				} else {
-					user.Id = existedUser.Id
-					usr.Res.CustomResponse(c, "Content-Type", "application/json", "success", "user updated", http.StatusOK, user)
-				}
-			}
-
-		}
+	idInt, err := strconv.Atoi(id)
+	if err != nil {
+		usr.responseError(c, http.StatusBadRequest, err.Error())
+		return
 	}
+
+	// Bind User Data
+	var u userModel.User
+	if err := c.ShouldBindWith(&u, binding.FormMultipart); err != nil {
+		usr.responseError(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	// Get image data
+	imageBlob, _ := c.FormFile("image_blob")
+
+	if err = userModel.Update(&u, idInt, imageBlob); err != nil {
+		usr.responseError(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	usr.responseSuccess(c, u)
 }
 
+// Delete ... Delete single user
 func (usr *UserHandler) Delete(c *gin.Context) {
+	// Get User ID
 	id := c.Params.ByName("id")
-
-	if numId, error := strconv.Atoi(id); error != nil {
-		usr.Res.CustomResponse(c, "Content-Type", "application/json", "error", "ID not valid", http.StatusBadRequest, nil)
-	} else {
-		var user userModel.User
-
-		if errUserExist := userModel.Get(&user, numId); errUserExist != nil {
-			usr.Res.CustomResponse(c, "Content-Type", "application/json", "error", errUserExist.Error(), http.StatusInternalServerError, nil)
-		} else {
-			userImageUrl := user.Image
-			if err := userModel.Delete(&user, numId); err != nil {
-				usr.Res.CustomResponse(c, "Content-Type", "application/json", "error", "ID not valid", http.StatusBadRequest, nil)
-			} else {
-				os.Remove(userImageUrl)
-				usr.Res.CustomResponse(c, "Content-Type", "application/json", "success", "user deleted", http.StatusOK, nil)
-				return
-			}
-		}
+	idInt, err := strconv.Atoi(id)
+	if err != nil {
+		usr.responseError(c, http.StatusBadRequest, err.Error())
+		return
 	}
+
+	if err := userModel.Delete(idInt); err != nil {
+		usr.responseError(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	usr.responseSuccess(c, "")
 }
 
-func _checkUserBinding(c *gin.Context) (bool bool, user userModel.User) {
-	if len(c.PostForm("username")) <= 0 || len(c.PostForm("password")) <= 0 || len(c.PostForm("full_name")) <= 0 || len(c.PostForm("user_type_id")) <= 0 {
-		return false, user
-	}
-	user.Username = c.PostForm("username")
-	user.Password = c.PostForm("password")
-	user.Full_name = c.PostForm("full_name")
-	user.User_type_id, _ = strconv.Atoi(c.PostForm("user_type_id"))
-	return true, user
+func (usr *UserHandler) responseSuccess(c *gin.Context, data interface{}) {
+	usr.Res.CustomResponse(c, "Content-Type", "application/json", "success", "", http.StatusOK, data)
+}
+
+func (usr *UserHandler) responseError(c *gin.Context, code int, message string) {
+	usr.Res.CustomResponse(c, "Content-Type", "application/json", "error", message, code, nil)
 }
